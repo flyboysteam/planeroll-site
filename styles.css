@@ -1,0 +1,195 @@
+:root {
+  /* Mapped from planeroll/constants/theme.ts. */
+  --pr-color-background: #111111; /* theme.colors.background */
+  --pr-color-surface: rgba(255, 255, 255, 0.05); /* theme.colors.surface */
+  --pr-color-text-primary: rgba(255, 255, 255, 1); /* theme.colors.whiteTextPrimary */
+  --pr-color-text-secondary: rgba(255, 255, 255, 0.60); /* theme.colors.whiteTextSecondary */
+  --pr-color-border: rgba(255, 255, 255, 0.15); /* theme.colors.border */
+  --pr-color-success: #20bc75; /* theme.colors.primaryGreen */
+  --pr-color-error: #ff4d73; /* theme.colors.destructive */
+
+  --pr-space-xs: 4px; /* theme.spacing.xs */
+  --pr-space-sm: 8px; /* theme.spacing.sm */
+  --pr-space-md: 12px; /* theme.spacing.md */
+  --pr-space-lg: 16px; /* theme.spacing.lg and theme.screenPadding.horizontal */
+  --pr-space-xl: 24px; /* theme.spacing.xl */
+  --pr-space-xxl: 32px; /* theme.spacing.xxl */
+
+  --pr-radius-md: 12px; /* theme.radius.md */
+  --pr-button-height: 58px; /* theme.componentHeights.button */
+  --pr-input-height: 48px; /* theme.componentHeights.input */
+
+  --pr-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* theme.typography.families.sans (web) */
+  --pr-type-display-size: 32px; /* theme.typography.styles.display.fontSize */
+  --pr-type-display-leading: 32px; /* theme.typography.styles.display.lineHeight */
+  --pr-type-display-weight: 900; /* theme.typography.styles.display.fontWeight */
+  --pr-type-display-tracking: -1px; /* theme.typography.styles.display.letterSpacing */
+  --pr-type-heading-size: 20px; /* theme.typography.styles.heading.fontSize */
+  --pr-type-heading-leading: 24px; /* theme.typography.styles.heading.lineHeight */
+  --pr-type-heading-weight: 700; /* theme.typography.styles.heading.fontWeight */
+  --pr-type-body-size: 17px; /* theme.typography.styles.body.fontSize */
+  --pr-type-body-leading: 24px; /* theme.typography.styles.body.lineHeight */
+  --pr-type-label-size: 15px; /* theme.typography.styles.label.fontSize */
+  --pr-type-caption-size: 13px; /* theme.typography.styles.caption.fontSize */
+  --pr-type-button-size: 19px; /* theme.typography.styles.button.fontSize */
+  --pr-type-button-leading: 19px; /* theme.typography.styles.button.lineHeight */
+  --pr-type-button-weight: 500; /* theme.typography.styles.button.fontWeight */
+
+  /* No app token has a desktop content width; this cap only prevents unreadably wide web text. */
+  --site-max-width: 640px;
+  /* The app has no large logo presentation token; this preserves its supplied SVG artwork at a prominent web scale. */
+  --site-logo-width: 112px;
+  /* Web-only keyboard focus outline for accessibility. */
+  --site-focus-width: 2px;
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--pr-color-background); }
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--pr-color-background);
+  color: var(--pr-color-text-primary);
+  font-family: var(--pr-font-sans);
+  font-size: var(--pr-type-body-size);
+  font-weight: 500;
+  line-height: var(--pr-type-body-leading);
+}
+
+.page-shell {
+  width: min(100% - (var(--pr-space-lg) * 2), var(--site-max-width));
+  margin: 0 auto;
+  padding: calc(var(--pr-space-xxl) * 2) 0 var(--pr-space-xxl);
+}
+
+.intro { display: grid; gap: var(--pr-space-lg); }
+
+.logo {
+  width: var(--site-logo-width);
+  height: auto;
+  display: block;
+}
+
+h1, h2, p { margin: 0; }
+
+h1 {
+  font-size: var(--pr-type-display-size);
+  font-weight: var(--pr-type-display-weight);
+  letter-spacing: var(--pr-type-display-tracking);
+  line-height: var(--pr-type-display-leading);
+}
+
+.tagline { color: var(--pr-color-text-primary); }
+
+.description { color: var(--pr-color-text-secondary); }
+
+.contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pr-space-lg);
+}
+
+a {
+  color: var(--pr-color-text-primary);
+  text-underline-offset: var(--pr-space-xs);
+}
+
+a:hover { color: var(--pr-color-success); }
+
+a:focus-visible, input:focus-visible, button:focus-visible {
+  outline: var(--site-focus-width) solid var(--pr-color-success);
+  outline-offset: var(--pr-space-xs);
+}
+
+.signup {
+  margin-top: calc(var(--pr-space-xxl) * 2);
+  padding: var(--pr-space-xl);
+  border: 1px solid var(--pr-color-border);
+  border-radius: var(--pr-radius-md);
+  background: var(--pr-color-surface);
+}
+
+h2 {
+  font-size: var(--pr-type-heading-size);
+  font-weight: var(--pr-type-heading-weight);
+  line-height: var(--pr-type-heading-leading);
+}
+
+form { margin-top: var(--pr-space-lg); }
+
+.form-fields { display: flex; gap: var(--pr-space-sm); }
+
+input, button {
+  min-height: var(--pr-input-height);
+  border-radius: var(--pr-radius-md);
+  font: inherit;
+}
+
+input {
+  min-width: 0;
+  flex: 1;
+  padding: 0 var(--pr-space-md);
+  border: 1px solid var(--pr-color-border);
+  background: transparent;
+  color: var(--pr-color-text-primary);
+}
+
+input::placeholder { color: var(--pr-color-text-secondary); }
+
+button {
+  min-height: var(--pr-button-height);
+  padding: 0 var(--pr-space-lg);
+  border: 0;
+  background: var(--pr-color-text-primary);
+  color: var(--pr-color-background);
+  cursor: pointer;
+  font-size: var(--pr-type-button-size);
+  font-weight: var(--pr-type-button-weight);
+  line-height: var(--pr-type-button-leading);
+}
+
+button:hover:not(:disabled) { background: var(--pr-color-success); }
+button:disabled { cursor: wait; opacity: 0.6; }
+
+.form-message {
+  min-height: var(--pr-type-caption-size);
+  margin-top: var(--pr-space-sm);
+  color: var(--pr-color-error);
+  font-size: var(--pr-type-caption-size);
+  line-height: var(--pr-type-caption-size);
+}
+
+.form-message.is-success {
+  color: var(--pr-color-success);
+  font-size: var(--pr-type-body-size);
+  line-height: var(--pr-type-body-leading);
+}
+
+footer {
+  width: min(100% - (var(--pr-space-lg) * 2), var(--site-max-width));
+  margin: 0 auto;
+  padding: var(--pr-space-xl) 0 var(--pr-space-lg);
+  color: var(--pr-color-text-secondary);
+  font-size: var(--pr-type-caption-size);
+  line-height: var(--pr-type-caption-size);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 420px) {
+  .form-fields { flex-direction: column; }
+  button { width: 100%; }
+}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Planeroll is a planespotting and collecting app coming late 2026.">
+    <title>Planeroll</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="intro" aria-labelledby="site-title">
+        <img class="logo" src="assets/planeroll-logo.svg" alt="Planeroll logo">
+        <h1 id="site-title">Planeroll</h1>
+        <p class="tagline">A planespotting app. You spot. We identify.</p>
+        <p class="description">Two avgeeks building a planespotting and collecting app. Coming late 2026.</p>
+        <p class="contact-links">
+          <a href="mailto:tower@planeroll.app">tower@planeroll.app</a>
+          <a href="https://x.com/planeroll">Twitter/X</a>
+        </p>
+      </section>
+
+      <section class="signup" aria-labelledby="signup-title">
+        <h2 id="signup-title">Get flight updates</h2>
+        <form id="signup-form" action="https://formspree.io/f/xrpgajew" method="post" novalidate>
+          <label class="sr-only" for="email">Email address</label>
+          <div class="form-fields">
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="Email address" required>
+            <button id="submit-button" type="submit">Sign up</button>
+          </div>
+          <p id="form-message" class="form-message" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer>© 2026 Flyboys, LLC</footer>
+    <script src="script.js"></script>
+  </body>
+</html>
