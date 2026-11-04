@@ -1,0 +1,44 @@
+/* Web facsimile of Planeroll's actual Add Plane camera.
+ * Sources: ../planeroll/app/(add-plane)/add-plane.tsx,
+ * constants/theme.ts, and components/primitives/{PageHeader,IconButton,GlassButton}.
+ * Native point values are scaled by --camera-unit to fit the mock phone.
+ * SVG icons approximate native SF Symbols; scrims use translucent black without blur.
+ */
+.camera-app {
+  --camera-unit: .663636px;
+  --pr-background: #000000;
+  --pr-white-primary: rgba(255, 255, 255, 1);
+  --pr-surface: rgba(255, 255, 255, .05);
+  --pr-surface-elevated: rgba(255, 255, 255, .10);
+  --pr-surface-muted: rgba(255, 255, 255, .20);
+  --pr-border: rgba(255, 255, 255, .15);
+  --pr-header-surface: rgba(0, 0, 0, .90);
+  --pr-caution: #FFDE0A;
+  color: var(--pr-white-primary);
+  background: var(--pr-background);
+}
+.camera-feed { position: absolute; inset: 0; overflow: hidden; }
+.camera-feed canvas { width: 100%; height: 100%; display: block; }
+.camera-window { position: absolute; top: var(--viewfinder-top); left: 50%; transform: translateX(-50%); width: var(--viewfinder-width); height: var(--viewfinder-height); overflow: hidden; }
+.viewfinder-grid { position: absolute; inset: 0; }
+.viewfinder-grid::before, .viewfinder-grid::after { content: ''; position: absolute; inset: 0; }
+.viewfinder-grid::before { background: linear-gradient(to right, transparent calc(100% / 3), var(--pr-surface-muted) calc(100% / 3), var(--pr-surface-muted) calc(100% / 3 + .5 * var(--camera-unit)), transparent calc(100% / 3 + .5 * var(--camera-unit)), transparent calc(200% / 3), var(--pr-surface-muted) calc(200% / 3), var(--pr-surface-muted) calc(200% / 3 + .5 * var(--camera-unit)), transparent calc(200% / 3 + .5 * var(--camera-unit))); }
+.viewfinder-grid::after { background: linear-gradient(to bottom, transparent calc(100% / 3), var(--pr-surface-muted) calc(100% / 3), var(--pr-surface-muted) calc(100% / 3 + .5 * var(--camera-unit)), transparent calc(100% / 3 + .5 * var(--camera-unit)), transparent calc(200% / 3), var(--pr-surface-muted) calc(200% / 3), var(--pr-surface-muted) calc(200% / 3 + .5 * var(--camera-unit)), transparent calc(200% / 3 + .5 * var(--camera-unit))); }
+.camera-header, .camera-footer { position: absolute; left: 0; right: 0; border: 0; background: var(--pr-header-surface); }
+/* Overlap the shared viewfinder edges so fractional device pixels cannot expose a seam. */
+.camera-header { top: 0; height: calc(var(--viewfinder-top) + 1px); display: flex; align-items: center; justify-content: center; padding-top: calc(62 * var(--camera-unit)); }
+/* Center in the available header beneath the status bar and Dynamic Island. */
+.camera-hat { display: block; width: 33%; height: auto; flex: none; }
+.camera-footer { top: calc(var(--viewfinder-top) + var(--viewfinder-height) - 1px); bottom: 0; }
+.camera-controls { position: absolute; bottom: calc(36 * var(--camera-unit)); left: 0; right: 0; height: calc(104 * var(--camera-unit)); display: flex; align-items: center; justify-content: center; }
+/* An 8pt outer ring (previously 4pt), keeping the white disc and centre fixed. */
+.shutter { width: calc(104 * var(--camera-unit)); height: calc(104 * var(--camera-unit)); border-radius: 50%; background: var(--pr-surface); border: calc(2 * var(--camera-unit)) solid var(--pr-border); display: grid; place-items: center; box-shadow: inset 0 calc(1 * var(--camera-unit)) calc(2 * var(--camera-unit)) var(--pr-surface-muted); }
+.shutter div { width: calc(88 * var(--camera-unit)); height: calc(88 * var(--camera-unit)); border-radius: 50%; background: var(--pr-white-primary); }
+.capture-shutter { position: absolute; top: var(--viewfinder-top); left: 50%; transform: translateX(-50%); width: var(--viewfinder-width); height: var(--viewfinder-height); overflow: hidden; pointer-events: none; z-index: 6; }
+/* Switch bounds while fully closed so the entire captured photo stays behind
+   the blades as they reopen, with a 1px bleed to avoid exposed edge strips. */
+.phone-screen[data-capture="photo"] .capture-shutter { top: calc(var(--photo-top) - 1px); width: calc(var(--photo-width) + 2px); height: calc(var(--photo-height) + 2px); }
+/* Overlap the blades at full closure to avoid a subpixel seam at the centre. */
+.shutter-blade { --pr-background: #000000; position: absolute; left: 0; right: 0; height: calc(50% + 1px); background: var(--pr-background); will-change: transform; }
+.shutter-blade-top { top: 0; transform: translateY(-100%); }
+.shutter-blade-bottom { bottom: 0; transform: translateY(100%); }

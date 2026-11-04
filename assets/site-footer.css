@@ -1,0 +1,44 @@
+/* Preserve the footer wordmark's nominal height independently of the device. */
+.site-footer {
+  position: fixed; inset: auto 0 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  padding: 48px max(96px, env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(96px, env(safe-area-inset-left));
+  background: rgb(0 0 0 / .85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #fff;
+}
+.site-footer-logo {
+  display: block; flex: none; width: auto;
+  height: calc(var(--brand-logo-height, 51.44px) * .75 + 8px);
+}
+.site-footer-links { display: flex; align-items: center; gap: 16px; }
+.site-footer-links a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; color: rgb(255 255 255 / .75); font-size: 13px; font-weight: 500; line-height: 1.4; text-decoration: none; white-space: nowrap; transition: color 180ms ease; }
+.site-footer-links a:hover { color: #fff; }
+.site-footer-links a:focus-visible { outline: 2px solid #FFDE0A; outline-offset: 5px; border-radius: 2px; }
+.site-footer-social svg { display: block; }
+.site-footer-app-store {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+}
+.app-store-badge { display: block; width: auto; height: 60px; opacity: .15; }
+.app-store-coming {
+  position: absolute; top: -5px; right: -12px;
+  padding: 3px 6px; border-radius: 5px;
+  background: #FFDE0A; color: #000;
+  box-shadow:
+    -2px 0 0 rgb(239 67 64 / .35),
+    2px 0 0 rgb(32 188 117 / .35),
+    0 0 6px rgb(255 222 10 / .20),
+    0 0 16px rgb(255 222 10 / .12);
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 10px; font-weight: 500; line-height: 14px;
+  white-space: nowrap; transform: rotate(7deg);
+}
+@media (max-width: 1200px) {
+  .site-footer { flex-direction: column; align-items: flex-start; gap: 8px; padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+  .site-footer-app-store { position: relative; left: auto; top: auto; transform: none; align-self: center; margin: 20px 0 16px; }
+  .site-footer-links { width: 100%; flex-wrap: wrap; }
+  .site-footer-links a { font-size: 12px; }
+}
+.site-footer-brand { display: block; flex: none; }
+.site-footer-brand:focus-visible { outline: 2px solid #FFDE0A; outline-offset: 6px; border-radius: 2px; }

@@ -3,40 +3,116 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Planeroll is a planespotting and collecting app coming late 2026.">
-    <title>Planeroll</title>
+    <meta name="description" content="Spot aircraft, identify them, and build your personal Planeroll collection.">
+    <title>Planeroll · Build Your Aircraft Collection</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="assets/site-footer.css?v=13">
+    <link rel="stylesheet" href="prototype/prototype.css?v=57">
+    <link rel="stylesheet" href="prototype/planeroll-camera.css?v=13">
+    <link rel="stylesheet" href="prototype/planespot.css?v=10">
+    <script type="module" src="prototype/prototype.js?v=35"></script>
   </head>
   <body>
-    <main class="page-shell">
-      <section class="intro" aria-labelledby="site-title">
-        <img class="logo" src="assets/planeroll-logo.svg" alt="Planeroll logo">
-        <h1 id="site-title">Planeroll</h1>
-        <p class="tagline">A planespotting app. You spot. We identify.</p>
-        <p class="description">Planeroll is a planespotting and aircraft collecting app developed by Flyboys, LLC. Coming late 2026.</p>
-        <h3>About Planeroll</h3>
-        <p class="description">Planeroll is a mobile app for planespotters to identify aircraft and build a personal collection of the planes they've spotted. Planeroll is developed and operated by Flyboys, LLC.</p>
-        <p class="contact-links">
-          <a href="mailto:tower@planeroll.app">tower@planeroll.app</a>
-          <a href="https://x.com/planeroll">Twitter/X</a>
-        </p>
-      </section>
-
-      <section class="signup" aria-labelledby="signup-title">
-        <h2 id="signup-title">Get flight updates</h2>
-        <form id="signup-form" action="https://formspree.io/f/xrpgajew" method="post" novalidate>
-          <label class="sr-only" for="email">Email address</label>
-          <div class="form-fields">
-            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="Email address" required>
-            <button id="submit-button" type="submit">Sign up</button>
+    <main class="scroll-story" id="scroll-story" aria-label="Scroll to photograph an aircraft and reveal its Planeroll spot">
+      <div class="stage" id="stage" data-phase="ready">
+        <div class="world" id="world" aria-hidden="true"><canvas id="airfield"></canvas></div>
+        <div class="intro-copy" id="intro-copy">
+          <h1 class="intro-headline" id="intro-headline">Build your aircraft collection.</h1>
+          <p class="intro-tagline">You spot. We identify.</p>
+          <span class="intro-scroll" role="img" aria-label="Scroll down">
+            <svg class="scroll-cue" viewBox="0 0 40 110" fill="none" aria-hidden="true">
+              <rect x="9.6" y="2" width="20.8" height="30.4" rx="10.4"/>
+              <path class="scroll-cue-wheel" d="M20 9.2v3.6"/>
+              <g class="scroll-cue-arrow"><path d="M20 52v48m-6-6 6 6 6-6"/></g>
+            </svg>
+          </span>
+        </div>
+        <div class="phone" id="phone" aria-label="Phone preview">
+          <div class="phone-button button-silent"></div><div class="phone-button button-volume"></div><div class="phone-button button-power"></div>
+          <div class="phone-screen">
+            <div class="camera-app" id="camera-app" aria-hidden="true">
+              <div class="camera-feed"><canvas id="viewfinder"></canvas></div>
+              <div class="camera-window" id="camera-window">
+                <div class="viewfinder-grid"></div>
+              </div>
+              <div class="camera-header"><img class="camera-hat" src="assets/hat.png" width="988" height="724" alt="" draggable="false"></div>
+              <div class="camera-footer"></div>
+              <div class="camera-controls">
+                <div class="shutter" id="shutter"><div></div></div>
+              </div>
+            </div>
+            <div class="photo-review" id="photo-review" aria-hidden="true">
+              <div class="photo-loading">
+                <div class="photo-glow"></div>
+                <p class="photo-analysis phosphor-label">
+                  <span class="phosphor-glow phosphor-glow-near" aria-hidden="true">ANALYZING...</span>
+                  <span class="phosphor-glow phosphor-glow-wide" aria-hidden="true">ANALYZING...</span>
+                  <span class="phosphor-text">ANALYZING...</span>
+                </p>
+              </div>
+              <canvas class="captured-photo" id="captured-photo"></canvas>
+            </div>
+            <div class="spot-app" id="spot-app" aria-hidden="true">
+              <img class="spot-screenshot" id="spot-screenshot" src="prototype/planespot-a350-900-operator.png" width="1206" height="2622" alt="Planeroll planespot: Delta Air Lines Airbus A350-900 at Aster International Airport, N350PR." draggable="false">
+              <img class="spot-screenshot spot-blank-screenshot" id="spot-blank-screenshot" src="prototype/planespot-a350-900-blank.png" width="1206" height="2622" alt="" draggable="false">
+              <div class="spot-scanline"><span class="scan-outer"></span><span class="scan-inner"></span><span class="scan-core"></span></div>
+              <img class="spot-screenshot spot-details-background" id="spot-details-background" src="prototype/planespot-a350-900-no-text.png" width="1206" height="2622" alt="" draggable="false">
+              <!-- Every region samples the same aligned capture. Clip boundaries move;
+                   the screenshot texture never scales or slides during the reveal. -->
+              <div class="spot-details">
+                <div class="spot-detail-region" style="--detail-x:1000; --detail-y:1728; --detail-width:206; --detail-height:106"></div>
+                <div class="spot-detail-region" style="--detail-x:0; --detail-y:2155; --detail-width:350; --detail-height:189"></div>
+                <div class="spot-detail-region" style="--detail-x:603; --detail-y:2155; --detail-width:317; --detail-height:189"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="operator" style="--detail-x:0; --detail-y:1728; --detail-width:1206; --detail-height:106; --detail-delay:0ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="airport" style="--detail-x:0; --detail-y:1834; --detail-width:1206; --detail-height:70; --detail-delay:90ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="date" style="--detail-x:0; --detail-y:1904; --detail-width:256; --detail-height:64; --detail-delay:180ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="registration" style="--detail-x:256; --detail-y:1904; --detail-width:950; --detail-height:64; --detail-delay:180ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="manufacturer" style="--detail-x:0; --detail-y:1998; --detail-width:1206; --detail-height:47; --detail-delay:270ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="model" style="--detail-x:0; --detail-y:2045; --detail-width:1206; --detail-height:110; --detail-delay:360ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="first-flight" style="--detail-x:350; --detail-y:2155; --detail-width:253; --detail-height:63; --detail-delay:450ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="built" style="--detail-x:920; --detail-y:2155; --detail-width:286; --detail-height:63; --detail-delay:450ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="passengers" style="--detail-x:350; --detail-y:2218; --detail-width:253; --detail-height:63; --detail-delay:540ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="speed" style="--detail-x:920; --detail-y:2218; --detail-width:286; --detail-height:63; --detail-delay:540ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="range" style="--detail-x:350; --detail-y:2281; --detail-width:253; --detail-height:63; --detail-delay:630ms"></div>
+                <div class="spot-detail-region spot-detail-reveal" data-field="weight" style="--detail-x:920; --detail-y:2281; --detail-width:286; --detail-height:63; --detail-delay:630ms"></div>
+              </div>
+            </div>
+            <div class="capture-shutter" id="capture-shutter">
+              <div class="shutter-blade shutter-blade-top" id="shutter-blade-top"></div>
+              <div class="shutter-blade shutter-blade-bottom" id="shutter-blade-bottom"></div>
+            </div>
+            <div class="phone-status">
+              <div class="status-leading"><time id="phone-time" aria-live="off"></time></div>
+              <div class="status-trailing">
+                <span class="status-icons" role="img" aria-label="Preview: full cellular signal, Wi-Fi connected, full battery">
+                  <svg class="status-cellular" viewBox="0 0 19.2 12.3" aria-hidden="true"><rect y="8.1" width="3.3" height="4.2" rx=".9"/><rect x="5.3" y="5.4" width="3.3" height="6.9" rx=".9"/><rect x="10.6" y="2.7" width="3.3" height="9.6" rx=".9"/><rect x="15.9" width="3.3" height="12.3" rx=".9"/></svg>
+                  <svg class="status-wifi" viewBox="0 0 17.4 12.5" aria-hidden="true"><path d="M8.7.3A12.8 12.8 0 0 0 .2 3.55a.45.45 0 0 0-.02.65l1.3 1.34a.43.43 0 0 0 .6.02 10.1 10.1 0 0 1 13.24 0 .43.43 0 0 0 .6-.02l1.3-1.34a.45.45 0 0 0-.02-.65A12.8 12.8 0 0 0 8.7.3Zm0 4.2a8.6 8.6 0 0 0-5.57 2.03.43.43 0 0 0-.03.64l1.33 1.36a.43.43 0 0 0 .58.04 5.85 5.85 0 0 1 7.38 0 .43.43 0 0 0 .58-.04l1.33-1.36a.43.43 0 0 0-.03-.64A8.6 8.6 0 0 0 8.7 4.5Zm0 4.25c-.9 0-1.77.27-2.5.77a.38.38 0 0 0-.05.58l2.27 2.29a.4.4 0 0 0 .56 0l2.27-2.29a.38.38 0 0 0-.05-.58 4.4 4.4 0 0 0-2.5-.77Z"/></svg>
+                  <svg class="status-battery" viewBox="0 0 27.5 13" aria-hidden="true"><rect width="24.5" height="13" rx="4.2"/><rect class="battery-terminal" x="25.5" y="4.25" width="1.75" height="4.5" rx=".875"/></svg>
+                </span>
+              </div>
+            </div>
+            <div class="dynamic-island"></div>
           </div>
-        </form>
-        <p id="form-message" class="form-message" aria-live="polite"></p>
-      </section>
+        </div>
+      </div>
+      <p class="sr-only" id="scene-description" role="status">Scroll down to raise the phone, frame the aircraft, capture a photo, and reveal a sample Planeroll collection screen. Scroll up to return to the camera and airfield. All aircraft details shown are demonstration data.</p>
     </main>
-
-    <footer>© 2026 Flyboys, LLC</footer>
-    <script src="script.js"></script>
+    <footer class="site-footer" id="site-footer">
+      <a class="site-footer-brand" href="/" aria-label="Planeroll home"><img class="site-footer-logo" src="/assets/planeroll-logo-with-effects.svg" width="1482" height="351" alt="Planeroll" draggable="false"></a>
+      <div class="site-footer-app-store">
+        <img class="app-store-badge" src="/assets/app-store-badge-white.svg" width="120" height="40" alt="Download on the App Store" draggable="false">
+        <span class="app-store-coming">EARLY 2027</span>
+      </div>
+      <nav class="site-footer-links" aria-label="Footer">
+        <a href="/privacy-policy/">Privacy Policy</a>
+        <a href="/terms-of-use/">Terms of Use</a>
+        <a href="https://flyboys.dev" target="_blank" rel="noopener noreferrer">Flyboys, LLC</a>
+        <a href="mailto:tower@planeroll.app">Contact</a>
+        <a class="site-footer-social" href="https://x.com/planeroll" target="_blank" rel="noopener noreferrer" aria-label="Planeroll on X">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.64 7.584H.47l8.6-9.835L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+        </a>
+      </nav>
+    </footer>
+    <noscript><p class="no-script">Enable JavaScript to explore Planeroll.</p></noscript>
   </body>
 </html>

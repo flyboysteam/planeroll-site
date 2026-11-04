@@ -1,0 +1,36 @@
+/* Full app captures share one alignment. Only the artwork above the metadata
+   changes during the scan; the final capture supplies the stationary UI. */
+.spot-app { --spot-artwork-height: 65.90389%; --spot-scan-y: 0%; --spot-scan-opacity: 0; --spot-blank-opacity: 1; --scan-yellow: #FFDE0A; opacity: 0; background: #000; pointer-events: none; overflow: hidden; }
+.spot-screenshot { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
+.spot-blank-screenshot { clip-path: inset(var(--spot-scan-y) 0 calc(100% - var(--spot-artwork-height)) 0); opacity: var(--spot-blank-opacity); }
+/* Port of Planeroll's ScanlineBeam: 2pt core, 3.6pt near halo at 25%,
+   and a 6pt outer halo at 10% with 4pt blur. No independent animation clock. */
+.spot-scanline { position: absolute; top: var(--spot-scan-y); left: 0; right: 0; height: calc(6 * var(--phone-unit)); transform: translateY(-50%); opacity: var(--spot-scan-opacity); }
+.spot-scanline span { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); background: var(--scan-yellow); border-radius: 999px; }
+.scan-outer { height: calc(6 * var(--phone-unit)); opacity: .10; box-shadow: 0 0 calc(4 * var(--phone-unit)) var(--scan-yellow); }
+.scan-inner { height: calc(3.6 * var(--phone-unit)); opacity: .25; }
+.scan-core { height: calc(2 * var(--phone-unit)); }
+
+/* The supplied clean capture supplies the complete metadata background,
+   including its scanlines, row boundaries, and thumbnail (rows 1728–2344). */
+.spot-details-background { clip-path: inset(calc(1728 * 100% / 2622) 0 calc(278 * 100% / 2622)); }
+.spot-details { position: absolute; inset: 0; pointer-events: none; }
+.spot-detail-region {
+  --detail-top: calc(var(--detail-y) * 100% / 2622);
+  --detail-right: calc(100% - (var(--detail-x) + var(--detail-width)) * 100% / 1206);
+  --detail-bottom: calc(100% - (var(--detail-y) + var(--detail-height)) * 100% / 2622);
+  --detail-left: calc(var(--detail-x) * 100% / 1206);
+  position: absolute; inset: 0;
+  background: url('./planespot-a350-900-operator.png') center / 100% 100% no-repeat;
+  clip-path: inset(var(--detail-top) var(--detail-right) var(--detail-bottom) var(--detail-left));
+}
+.spot-detail-reveal {
+  clip-path: inset(var(--detail-top) calc(100% - var(--detail-left)) var(--detail-bottom) var(--detail-left));
+  transition: clip-path 700ms cubic-bezier(.4, 0, .2, 1) var(--detail-delay);
+}
+.spot-app[data-details-revealed="true"] .spot-detail-reveal {
+  clip-path: inset(var(--detail-top) var(--detail-right) var(--detail-bottom) var(--detail-left));
+}
+@media (prefers-reduced-motion: reduce) {
+  .spot-detail-reveal { transition: none; }
+}

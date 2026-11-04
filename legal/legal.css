@@ -1,0 +1,41 @@
+:root {
+  color-scheme: dark;
+  color: #fff;
+  background: #000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-synthesis: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; }
+body { --footer-height: 260px; isolation: isolate; }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('/prototype/airport-terminal-v2.png') center / cover no-repeat;
+  opacity: .11;
+  pointer-events: none;
+}
+.legal-page {
+  width: min(640px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 96px 0 calc(var(--footer-height) + 64px);
+}
+/* Preserve the app's heading hierarchy and spacing with smaller, regular-weight body text. */
+.legal-document { display: flex; flex-direction: column; gap: 12px; color: rgb(255 255 255 / .75); font-size: 15px; line-height: 24px; font-weight: 400; overflow-wrap: anywhere; }
+.legal-document :is(h1, h2, h3, p, ul) { margin: 0; }
+.legal-document :is(h1, h2, h3) { color: #fff; }
+.legal-document h1 { font-size: 23px; line-height: 26px; font-weight: 700; letter-spacing: -.5px; }
+.legal-document h2 { font-size: 19px; line-height: 24px; font-weight: 700; }
+.legal-document h3 { font-size: 16px; line-height: 24px; font-weight: 700; }
+.legal-document :is(h2, h3) { margin-top: 12px; }
+.legal-document strong { font-weight: 700; }
+.legal-document ul { display: flex; flex-direction: column; gap: 8px; padding-left: 24px; }
+.legal-document li { padding-left: 2px; }
+.legal-document a { color: #FFDE0A; text-decoration: none; text-underline-offset: 3px; }
+.legal-document a:is(:hover, :focus-visible) { text-decoration: underline; }
+.legal-document a:focus-visible { outline: 2px solid #FFDE0A; outline-offset: 3px; border-radius: 2px; }
+@media (max-width: 720px) {
+  .legal-page { width: calc(100% - 32px); padding-top: 48px; }
+}
