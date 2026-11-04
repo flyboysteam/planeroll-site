@@ -2,15 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Spot aircraft, identify them, and build your personal Planeroll collection.">
     <title>Planeroll · Build Your Aircraft Collection</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="assets/site-footer.css?v=13">
-    <link rel="stylesheet" href="prototype/prototype.css?v=57">
+    <link rel="stylesheet" href="assets/site-footer.css?v=14">
+    <link rel="stylesheet" href="prototype/prototype.css?v=59">
     <link rel="stylesheet" href="prototype/planeroll-camera.css?v=13">
-    <link rel="stylesheet" href="prototype/planespot.css?v=10">
-    <script type="module" src="prototype/prototype.js?v=35"></script>
+    <link rel="stylesheet" href="prototype/planespot.css?v=11">
+    <script type="module" src="/assets/site-footer.js?v=1"></script>
+    <script type="module" src="prototype/prototype.js?v=37"></script>
   </head>
   <body>
     <main class="scroll-story" id="scroll-story" aria-label="Scroll to photograph an aircraft and reveal its Planeroll spot">
@@ -53,10 +54,10 @@
               <canvas class="captured-photo" id="captured-photo"></canvas>
             </div>
             <div class="spot-app" id="spot-app" aria-hidden="true">
-              <img class="spot-screenshot" id="spot-screenshot" src="prototype/planespot-a350-900-operator.png" width="1206" height="2622" alt="Planeroll planespot: Delta Air Lines Airbus A350-900 at Aster International Airport, N350PR." draggable="false">
-              <img class="spot-screenshot spot-blank-screenshot" id="spot-blank-screenshot" src="prototype/planespot-a350-900-blank.png" width="1206" height="2622" alt="" draggable="false">
+              <img class="spot-screenshot" id="spot-screenshot" src="prototype/planespot-a350-900-operator.png?v=2" width="1206" height="2622" alt="Planeroll planespot: Delta Air Lines Airbus A350-900 at Aster International Airport, N350PR." draggable="false">
+              <img class="spot-screenshot spot-blank-screenshot" id="spot-blank-screenshot" src="prototype/planespot-a350-900-blank.png?v=2" width="1206" height="2622" alt="" draggable="false">
               <div class="spot-scanline"><span class="scan-outer"></span><span class="scan-inner"></span><span class="scan-core"></span></div>
-              <img class="spot-screenshot spot-details-background" id="spot-details-background" src="prototype/planespot-a350-900-no-text.png" width="1206" height="2622" alt="" draggable="false">
+              <img class="spot-screenshot spot-details-background" id="spot-details-background" src="prototype/planespot-a350-900-no-text.png?v=2" width="1206" height="2622" alt="" draggable="false">
               <!-- Every region samples the same aligned capture. Clip boundaries move;
                    the screenshot texture never scales or slides during the reveal. -->
               <div class="spot-details">

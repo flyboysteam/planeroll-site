@@ -11,11 +11,13 @@ const gradient = mountGradient({ world: elements.world });
 const intro = { scrimDelay: 500, scrimDuration: 1200, revealGap: 250, textDuration: 900, stagger: 250, phoneDuration: 900 };
 const textIntroStart = intro.scrimDelay + intro.scrimDuration + intro.revealGap;
 const phoneIntroStart = textIntroStart + intro.stagger + intro.textDuration;
+const scrollCueIntroStart = phoneIntroStart + intro.phoneDuration + 250;
 elements.stage.style.setProperty('--scrim-reveal-delay', `${intro.scrimDelay}ms`);
 elements.stage.style.setProperty('--scrim-reveal-duration', `${intro.scrimDuration}ms`);
 elements.stage.style.setProperty('--intro-delay', `${textIntroStart}ms`);
 elements.stage.style.setProperty('--intro-text-duration', `${intro.textDuration}ms`);
 elements.stage.style.setProperty('--intro-stagger', `${intro.stagger}ms`);
+elements.stage.style.setProperty('--scroll-cue-delay', `${scrollCueIntroStart}ms`);
 const scene = {
   image: new Image(),
   // The supplied terminal photograph, aimed at the central Delta aircraft.
@@ -269,7 +271,9 @@ function render(now) {
   const targetX = Math.max(phoneWidth / 2 + PHONE_HORIZONTAL_MARGIN_PX, Math.min(width - phoneWidth / 2 - PHONE_HORIZONTAL_MARGIN_PX, projection.targetX));
   const targetY = Math.max(phoneHeight / 2 + PHONE_VERTICAL_MARGIN_PX, Math.min(contentHeight - phoneHeight / 2 - PHONE_VERTICAL_MARGIN_PX, projection.targetY));
   let x = mix(width * 0.5, targetX, rise);
-  let y = mix(height, targetY, rise);
+  // On narrow screens the entrance sits above the compact footer, so the
+  // camera is visible immediately instead of disappearing behind navigation.
+  let y = mix(width <= 600 ? contentHeight : height, targetY, rise);
   x = mix(x, width * 0.5, settle);
   y = mix(y, contentHeight * 0.5, settle);
   if (reducedMotion.matches) { x = width * 0.5; y = contentHeight * 0.5; }

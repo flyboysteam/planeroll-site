@@ -27,6 +27,17 @@ body { overflow-x: clip; }
   margin: 0; color: #000; font-size: calc(var(--hero-font-size) * .5);
   font-weight: 900; line-height: 1.2;
 }
+@media (max-width: 1200px) {
+  .intro-copy { top: 64px; left: 48px; width: 60%; max-width: 640px; }
+}
+@media (max-width: 600px) {
+  .intro-copy { --hero-font-size: clamp(38px, 10.5vw, 60px); top: max(48px, env(safe-area-inset-top)); left: 24px; width: calc(100% - 48px); max-width: none; }
+  .intro-tagline { white-space: nowrap; }
+}
+@media (max-height: 500px) and (max-width: 1200px) {
+  .intro-copy { --hero-font-size: clamp(28px, 5vw, 44px); top: 24px; left: 24px; width: 50%; }
+  .intro-scroll { display: none !important; }
+}
 .intro-scroll { display: block; margin-top: 8px; flex: none; align-self: flex-start; width: 40px; height: 110px; color: rgb(0 0 0 / .35); transition: opacity 250ms ease; }
 .scroll-cue { display: block; width: 100%; height: 100%; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .scroll-cue > rect, .scroll-cue-wheel { stroke: rgb(0 0 0 / .20); }
@@ -54,11 +65,10 @@ body { overflow-x: clip; }
   animation: intro-text-reveal var(--intro-text-duration, 900ms) cubic-bezier(.22, 1, .36, 1) var(--intro-delay, 1950ms) both;
 }
 .stage[data-ready="true"] .intro-tagline { animation-delay: calc(var(--intro-delay, 1950ms) + var(--intro-stagger, 250ms)); }
-.stage[data-ready="true"] .intro-scroll { animation-delay: calc(var(--intro-delay, 1950ms) + var(--intro-stagger, 250ms) + 250ms); }
+.stage[data-ready="true"] .intro-scroll { animation-delay: var(--scroll-cue-delay, 4250ms); }
 @keyframes intro-text-reveal { from { opacity: 0; transform: translateY(-16px); } to { opacity: var(--intro-opacity, 1); transform: translateY(0); } }
 .stage[data-intro="complete"] .intro-headline,
-.stage[data-intro="complete"] .intro-tagline,
-.stage[data-intro="complete"] .intro-scroll { animation: none; opacity: var(--intro-opacity, 1); transform: none; }
+.stage[data-intro="complete"] .intro-tagline { animation: none; opacity: var(--intro-opacity, 1); transform: none; }
 .stage[data-scroll-cue-dismissed="true"] .intro-copy .intro-scroll { animation: none; opacity: 0; transform: none; }
 .stage:not([data-ready="true"]) .phone { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
