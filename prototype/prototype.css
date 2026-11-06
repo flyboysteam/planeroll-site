@@ -3,7 +3,7 @@
 html, body { margin: 0; width: 100%; }
 body { overflow-x: clip; }
 .scroll-story { --center-hold-scroll: 1000px; --livery-scroll: 1250px; height: calc(520vh + var(--center-hold-scroll) + var(--livery-scroll)); height: calc(520svh + var(--center-hold-scroll) + var(--livery-scroll)); }
-.stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; isolation: isolate; background: #000; }
+.stage { position: sticky; top: 0; height: 100vh; height: 100dvh; height: var(--site-viewport-height, 100dvh); overflow: hidden; isolation: isolate; background: #000; }
 /* Start the one-time reveal after the first painted scene, so loading assets
    cannot use up the hold or expose a bright frame before the scrim appears. */
 .stage::after { content: ''; position: absolute; inset: 0; z-index: 30; background: #000; opacity: .75; pointer-events: none; }
@@ -28,15 +28,15 @@ body { overflow-x: clip; }
   font-weight: 900; line-height: 1.2;
 }
 @media (max-width: 1200px) {
-  .intro-copy { top: 64px; left: 48px; width: 60%; max-width: 640px; }
+  .intro-copy { top: 48px; left: 48px; width: 60%; max-width: 640px; }
 }
 @media (max-width: 600px) {
-  .intro-copy { --hero-font-size: clamp(44px, 13vw, 72px); top: 96px; transform: none; left: 24px; width: calc(100% - 48px); max-width: none; text-align: center; align-items: center; }
+  .intro-copy { --hero-font-size: clamp(44px, 13vw, 72px); top: 48px; transform: none; left: 24px; width: calc(100% - 48px); max-width: none; text-align: center; align-items: center; }
   .intro-copy .intro-scroll { display: none; }
   .intro-tagline { font-size: clamp(20px, 5.75vw, 32px); white-space: nowrap; }
 }
 @media (max-height: 500px) and (max-width: 1200px) {
-  .intro-copy { --hero-font-size: clamp(28px, 5vw, 44px); top: 24px; transform: none; left: 24px; width: 50%; }
+  .intro-copy { --hero-font-size: clamp(28px, 5vw, 44px); top: 48px; transform: none; left: 24px; width: 50%; }
   .intro-scroll { display: none !important; }
 }
 .intro-scroll { display: block; margin-top: 8px; flex: none; align-self: flex-start; width: 40px; height: 110px; color: rgb(0 0 0 / .35); transition: opacity 250ms ease; }

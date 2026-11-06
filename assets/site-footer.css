@@ -2,7 +2,7 @@
 html[data-platform="windows"], html[data-platform="windows"] body,
 html[data-platform="windows"] .status-leading time { font-family: Arial, sans-serif; }
 .site-footer {
-  position: fixed; inset: auto 0 0; z-index: 40;
+  position: fixed; inset: auto 0 var(--site-viewport-bottom-offset, 0px); z-index: 40;
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
   padding: 48px max(96px, env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(96px, env(safe-area-inset-left));
   background: rgb(0 0 0 / .85);
@@ -62,7 +62,7 @@ html[data-platform="windows"] .status-leading time { font-family: Arial, sans-se
   html.mobile-menu-open { overflow: hidden; }
   .site-footer[data-menu-ready] { z-index: 101; }
   html.mobile-menu-open .site-footer::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; background: rgb(0 0 0 / .70); pointer-events: none; }
-  .mobile-menu { display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); position: fixed; inset: 0 0 calc(var(--menu-footer-height, 80px) + 1px); z-index: 100; background: rgb(0 0 0 / .85); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: #fff; overflow-y: auto; overscroll-behavior: contain; transform: translateX(100%); visibility: hidden; transition: transform 320ms cubic-bezier(.22, 1, .36, 1), visibility 0s 320ms; }
+  .mobile-menu { display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); position: fixed; inset: 0 0 calc(var(--menu-footer-height, 80px) + var(--site-viewport-bottom-offset, 0px) + 1px); z-index: 100; background: rgb(0 0 0 / .85); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: #fff; overflow-y: auto; overscroll-behavior: contain; transform: translateX(100%); visibility: hidden; transition: transform 320ms cubic-bezier(.22, 1, .36, 1), visibility 0s 320ms; }
   .mobile-menu[data-open="true"] { transform: translateX(0); visibility: visible; transition-delay: 0s; }
   .mobile-menu-header { flex: none; height: 80px; margin-top: auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
   .mobile-menu-header img { width: auto; height: var(--compact-logo-height); }

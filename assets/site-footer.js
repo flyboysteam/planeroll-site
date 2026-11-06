@@ -1,3 +1,19 @@
+// Keep the scene and fixed navigation on the same visible viewport as mobile
+// browser chrome expands/retracts. Ignore pinch zoom so navigation remains zoomable.
+const viewport = window.visualViewport;
+function syncViewport() {
+  if (viewport && Math.abs(viewport.scale - 1) > .01) return;
+  const height = viewport?.height ?? window.innerHeight;
+  const bottom = (viewport?.offsetTop ?? 0) + height;
+  document.documentElement.style.setProperty('--site-viewport-height', `${height}px`);
+  document.documentElement.style.setProperty('--site-viewport-bottom-offset', `${window.innerHeight - bottom}px`);
+}
+syncViewport();
+viewport?.addEventListener('resize', syncViewport, { passive: true });
+viewport?.addEventListener('scroll', syncViewport, { passive: true });
+window.addEventListener('resize', syncViewport, { passive: true });
+window.addEventListener('pageshow', syncViewport);
+
 const footer = document.querySelector('.site-footer');
 const nav = footer?.querySelector('.site-footer-links');
 if (footer && nav) {
