@@ -163,3 +163,42 @@ body { overflow-x: clip; }
 .spot-app { clip-path: inset(0 0 10.7% 0); }
 .collection-navigation { position: absolute; inset: 0; z-index: 5; clip-path: url(#collection-button-circles); opacity: 0; pointer-events: none; }
 .collection-navigation img { display: block; width: 100%; height: 100%; }
+
+/* A timed closing screen covers every app layer except the iOS status bar. */
+.final-screen { position: absolute; inset: 0; z-index: 7; overflow: hidden; background: #000; opacity: 0; visibility: hidden; pointer-events: none; }
+.final-screen::before {
+  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom,
+      rgb(0 0 0 / .10) 0,
+      rgb(0 0 0 / .10) calc(1 * var(--phone-unit)),
+      transparent calc(1 * var(--phone-unit)),
+      transparent calc(2 * var(--phone-unit)));
+}
+.final-screen::after {
+  content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 22%, rgb(0 0 0 / .22) 82%),
+    repeating-conic-gradient(from 17deg at 37% 43%, rgb(255 255 255 / .014) 0 .1deg, transparent .1deg .7deg);
+  opacity: .72;
+}
+.final-screen-symbol {
+  position: absolute; top: 50%; left: 50%; z-index: 1; width: calc(54 * var(--phone-unit)); height: auto;
+  opacity: 0; transform: translate(-50%, -50%); will-change: opacity, transform;
+}
+.final-screen-copy {
+  position: absolute; top: 50%; left: 10%; z-index: 1; width: 80%; margin: 0; color: #fff;
+  font-size: calc(18 * var(--phone-unit)); font-weight: 300; line-height: 1.5;
+  letter-spacing: .005em; text-align: center; opacity: 0;
+  text-shadow:
+    calc(-1.25 * var(--phone-unit)) 0 rgb(239 67 64 / .48),
+    calc(1.25 * var(--phone-unit)) 0 rgb(32 188 117 / .48);
+  will-change: opacity;
+}
+.final-screen-copy[data-typing="true"]::after {
+  content: ''; display: inline-block; width: calc(1.5 * var(--phone-unit)); height: 1em;
+  margin-left: calc(2 * var(--phone-unit)); vertical-align: -.12em; background: currentColor;
+  animation: final-screen-caret 700ms steps(1, end) infinite;
+}
+@keyframes final-screen-caret { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .final-screen-copy[data-typing="true"]::after { display: none; } }

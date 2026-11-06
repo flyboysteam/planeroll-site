@@ -5,7 +5,7 @@ import { mountGradient } from './gradient.js?v=4';
 // The return journey crossfades to the camera instead of reversing the shutter.
 const $ = id => document.getElementById(id);
 const unmountStatusClock = mountStatusClock($('phone-time'));
-const elements = Object.fromEntries(['stage', 'phone', 'world', 'airfield', 'viewfinder', 'camera-window', 'camera-app', 'photo-review', 'captured-photo', 'spot-app', 'capture-shutter', 'shutter-blade-top', 'shutter-blade-bottom', 'shutter'].map(id => [id, $(id)]));
+const elements = Object.fromEntries(['stage', 'phone', 'world', 'airfield', 'viewfinder', 'camera-window', 'camera-app', 'photo-review', 'captured-photo', 'spot-app', 'capture-shutter', 'shutter-blade-top', 'shutter-blade-bottom', 'shutter', 'final-screen', 'final-screen-symbol', 'final-screen-copy'].map(id => [id, $(id)]));
 const gradient = mountGradient({ world: elements.world });
 // Leave a beat after the scrim finishes, then reveal text before the phone.
 const intro = { scrimDelay: 500, scrimDuration: 1200, revealGap: 250, textDuration: 900, stagger: 250, phoneDuration: 900 };
@@ -41,6 +41,13 @@ const CENTER_HOLD_SCROLL_PX = 1000;
 const LIVERY_END_HOLD_SCROLL_PX = 250;
 const FLEET_ZOOM_SCROLL_PX = 1100;
 const FLEET_END_HOLD_SCROLL_PX = 300;
+const FINAL_SCREEN_SCROLL_PX = 500;
+const FINAL_SCREEN_DURATION_MS = 6000;
+const FINAL_SCREEN_FADE_MS = 450;
+const SPLASH_FLICKER_STEP_MS = 55;
+const SPLASH_FLICKER_YELLOW_HOLD_MS = 150;
+const SPLASH_FLICKER_PHASE_HOLD_MS = 250;
+const SPLASH_FLICKER_TOTAL_MS = SPLASH_FLICKER_PHASE_HOLD_MS + 250 + SPLASH_FLICKER_STEP_MS * 5;
 const fleetHome = $('collection-home');
 const collectionNavigation = $('collection-navigation');
 const fleetScreenshot = $('collection-screenshot');
@@ -62,6 +69,29 @@ function captureEase(progress) {
     t = clamp(t - (x - progress) / (1.74 * t * t - 0.48 * t + 0.66));
   }
   return 1 - (1 - t) ** 3;
+}
+// Mobile splash easing: Easing.bezier(.23, 1, .32, 1).
+function splashFlickerEase(progress) {
+  let t = progress;
+  for (let i = 0; i < 5; i++) {
+    const x = ((.73 * t - .42) * t + .69) * t;
+    t = clamp(t - (x - progress) / (2.19 * t * t - .84 * t + .69));
+  }
+  return 1 - (1 - t) ** 3;
+}
+function splashFlickerOpacity(elapsed) {
+  const step = (start, from, to) => mix(from, to, splashFlickerEase(clamp((elapsed - start) / SPLASH_FLICKER_STEP_MS)));
+  if (elapsed <= 0) return 0;
+  if (elapsed < 55) return step(0, 0, 1);
+  if (elapsed < 55 + SPLASH_FLICKER_YELLOW_HOLD_MS) return 1;
+  if (elapsed < 260) return step(205, 1, .25);
+  if (elapsed < 315) return step(260, .25, 1);
+  if (elapsed < 555) return 1;
+  if (elapsed < 610) return step(555, 1, .25);
+  if (elapsed < 665) return step(610, .25, 1);
+  if (elapsed < 720) return step(665, 1, .2);
+  if (elapsed < SPLASH_FLICKER_TOTAL_MS) return step(720, .2, 1);
+  return 1;
 }
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const story = $('scroll-story');
@@ -86,6 +116,8 @@ let cameraLayout = null;
 let introStartedAt = null, introComplete = false;
 let captureStartedAt = null, captureHasSnapped = false;
 let scrollCueDismissed = false;
+let finalScreenStartedAt = null;
+const finalScreenCopy = elements['final-screen-copy'].textContent.trim();
 
 function resizeCanvas(canvas, cssWidth, cssHeight) {
   const w = Math.max(1, Math.round(cssWidth * pixelRatio));
@@ -113,7 +145,7 @@ function measure() {
   story.style.setProperty('--livery-scroll', `${liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX}px`);
   // Match the CSS 520vh story, rounding its total height up so the browser's
   // end-of-page scroll rounding cannot nudge the sticky stage above the viewport.
-  story.style.height = `${Math.ceil(height * 5.2 + CENTER_HOLD_SCROLL_PX + liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX + FLEET_ZOOM_SCROLL_PX + FLEET_END_HOLD_SCROLL_PX)}px`;
+  story.style.height = `${Math.ceil(height * 5.2 + CENTER_HOLD_SCROLL_PX + liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX + FLEET_ZOOM_SCROLL_PX + FLEET_END_HOLD_SCROLL_PX + FINAL_SCREEN_SCROLL_PX)}px`;
   resizeCanvas(elements.airfield, width, height);
   worldDirty = true;
   // Match Planeroll's Add Plane camera layout at a scaled 440pt viewport.
@@ -248,7 +280,7 @@ function render(now) {
   frame = 0;
   if (disposed || !loaded || !width || !height) return;
   const scrollDistance = Math.max(1, story.offsetHeight - height);
-  const sceneDistance = Math.max(1, scrollDistance - CENTER_HOLD_SCROLL_PX - liveryScanScrollPx - LIVERY_END_HOLD_SCROLL_PX - FLEET_ZOOM_SCROLL_PX - FLEET_END_HOLD_SCROLL_PX);
+  const sceneDistance = Math.max(1, scrollDistance - CENTER_HOLD_SCROLL_PX - liveryScanScrollPx - LIVERY_END_HOLD_SCROLL_PX - FLEET_ZOOM_SCROLL_PX - FLEET_END_HOLD_SCROLL_PX - FINAL_SCREEN_SCROLL_PX);
   const scrollPosition = Math.max(0, scrollY - story.offsetTop);
   if (!scrollCueDismissed && scrollPosition > 0) {
     scrollCueDismissed = true;
@@ -371,8 +403,28 @@ function render(now) {
   elements['spot-app'].style.opacity = snapped ? spotReveal * (1 - fleetFade) : 0;
   // Keep the photo from showing through the shrinking planespot.
   elements['photo-review'].style.opacity = photoReveal * (1 - spotReveal);
+  // Scrolling only starts or resets this closing sequence. Once triggered, its
+  // fade, flicker, lift, and typewriter play on a single elapsed-time clock.
+  const finalScreenTrigger = fleetStart + FLEET_ZOOM_SCROLL_PX + FLEET_END_HOLD_SCROLL_PX;
+  const finalScreenTriggered = snapped && captureFinished && scrollPosition >= finalScreenTrigger;
+  if (finalScreenTriggered && finalScreenStartedAt === null) finalScreenStartedAt = now;
+  if (!finalScreenTriggered && finalScreenStartedAt !== null) finalScreenStartedAt = null;
+  const finalElapsed = finalScreenStartedAt === null ? 0 : now - finalScreenStartedAt;
+  const finalOverlayProgress = reducedMotion.matches ? Number(finalScreenTriggered) : captureEase(clamp(finalElapsed / FINAL_SCREEN_FADE_MS));
+  const finalFlickerElapsed = finalElapsed - FINAL_SCREEN_FADE_MS;
+  const finalFlicker = reducedMotion.matches ? Number(finalScreenTriggered) : splashFlickerOpacity(finalFlickerElapsed);
+  const finalLiftStart = FINAL_SCREEN_FADE_MS + SPLASH_FLICKER_TOTAL_MS;
+  const finalLiftProgress = reducedMotion.matches ? Number(finalScreenTriggered) : captureEase(clamp((finalElapsed - finalLiftStart) / 400));
+  const finalTypeProgress = reducedMotion.matches ? Number(finalScreenTriggered) : clamp((finalElapsed - finalLiftStart - 400) / 4200);
+  elements['final-screen'].style.visibility = finalScreenTriggered ? 'visible' : 'hidden';
+  elements['final-screen'].style.opacity = finalOverlayProgress;
+  elements['final-screen-symbol'].style.opacity = finalFlicker;
+  elements['final-screen-symbol'].style.transform = `translate(-50%, -50%) translateY(${-60 * cameraLayout.width / 440 * finalLiftProgress}px)`;
+  elements['final-screen-copy'].style.opacity = finalTypeProgress > 0 ? 1 : 0;
+  elements['final-screen-copy'].textContent = finalScreenTriggered ? finalScreenCopy.slice(0, Math.ceil(finalScreenCopy.length * finalTypeProgress)) : finalScreenCopy;
+  elements['final-screen-copy'].dataset.typing = finalScreenTriggered && finalTypeProgress > 0 && finalTypeProgress < 1 ? 'true' : 'false';
   elements.stage.dataset.fleetProgress = fleetProgress.toFixed(4);
-  elements.stage.dataset.screen = fleetProgress > .5 ? 'home' : photoReveal < 0.5 ? 'camera' : spotReveal > 0.5 ? 'spot' : 'photo';
+  elements.stage.dataset.screen = finalOverlayProgress > .5 ? 'final' : fleetProgress > .5 ? 'home' : photoReveal < 0.5 ? 'camera' : spotReveal > 0.5 ? 'spot' : 'photo';
   elements.stage.dataset.capturePath = returningToCamera ? 'return' : 'forward';
   elements.stage.dataset.phase = p < 0.12 ? 'ready' : !snapped ? 'framing' : spotReveal === 0 ? 'captured' : 'collection';
   elements.stage.dataset.captureElapsed = captureElapsed.toFixed(0);
@@ -384,7 +436,7 @@ function render(now) {
   elements.stage.dataset.liveryStart = liveryStart.toFixed(2);
   elements.stage.dataset.liveryEnd = (liveryStart + liveryScanScrollPx).toFixed(2);
   elements.stage.dataset.ready = 'true';
-  if (!introComplete || (!returningToCamera && captureStartedAt !== null && captureElapsed < 780)) requestRender();
+  if (!introComplete || (!returningToCamera && captureStartedAt !== null && captureElapsed < 780) || (finalScreenStartedAt !== null && finalElapsed < FINAL_SCREEN_DURATION_MS)) requestRender();
 }
 function requestRender() { if (!frame && !disposed) frame = requestAnimationFrame(render); }
 const observer = new ResizeObserver(measure);
