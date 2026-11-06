@@ -1,5 +1,6 @@
 import { mountStatusClock } from './status-clock.js';
 import { mountGradient } from './gradient.js?v=4';
+import { createScrollMotion, motionKeyframes } from './scroll-motion.js?v=1';
 
 // After the one-time entrance, positions and blends follow scroll progress.
 // The return journey crossfades to the camera instead of reversing the shutter.
@@ -106,6 +107,7 @@ const planespotBlankScreenshot = $('spot-blank-screenshot');
 const planespotDetailsBackground = $('spot-details-background');
 const planespotArtworkHeightPercent = parseFloat(getComputedStyle(elements['spot-app']).getPropertyValue('--spot-artwork-height'));
 const phoneScreen = elements.phone.querySelector('.phone-screen');
+const scrollMotion = createScrollMotion(elements.phone, elements.viewfinder);
 let width = 0, height = 0, scale = 1, frame = 0, loaded = false, disposed = false, worldDirty = true;
 let deviceWidth = 0, deviceHeight = 0;
 let worldWidth = 0, worldHeight = 0;
@@ -115,7 +117,8 @@ let pixelRatio = 1;
 let previousScrollPosition = null, returningToCamera = false;
 let cameraLayout = null;
 let cameraRasterKey = null;
-let scrollDistance = 1;
+let scrollDistance = 1, sceneDistance = 1, storyTop = 0;
+let measurementKey = null;
 let introStartedAt = null, introComplete = false;
 let captureStartedAt = null, captureHasSnapped = false;
 let scrollCueDismissed = false;
@@ -134,6 +137,10 @@ function measure() {
   const nextWorldWidth = elements.world.clientWidth;
   const nextWorldHeight = elements.world.clientHeight;
   const nextPixelRatio = Math.min(devicePixelRatio || 1, 2);
+  const footerHeightPx = siteFooter.getBoundingClientRect().height;
+  const nextMeasurementKey = [width, height, nextWorldWidth, nextWorldHeight, nextPixelRatio, footerHeightPx, loaded].join(':');
+  if (measurementKey === nextMeasurementKey) { requestRender(); return; }
+  measurementKey = nextMeasurementKey;
   const worldResized = worldWidth !== nextWorldWidth || worldHeight !== nextWorldHeight || pixelRatio !== nextPixelRatio;
   worldWidth = nextWorldWidth;
   worldHeight = nextWorldHeight;
@@ -141,7 +148,7 @@ function measure() {
   pixelRatio = nextPixelRatio;
   deviceWidth = elements.phone.offsetWidth;
   deviceHeight = elements.phone.offsetHeight;
-  contentHeight = Math.max(1, height - siteFooter.getBoundingClientRect().height);
+  contentHeight = Math.max(1, height - footerHeightPx);
   const availableHeight = Math.max(1, contentHeight - PHONE_VERTICAL_MARGIN_PX * 2);
   const availableWidth = Math.max(1, width - PHONE_HORIZONTAL_MARGIN_PX * 2);
   const preferredScale = Math.max(PHONE_PREFERRED_MIN_HEIGHT_PX / deviceHeight, Math.min(1, availableHeight / deviceHeight));
@@ -152,9 +159,12 @@ function measure() {
   // when the device scales down. Keep a short completed-render hold afterward.
   liveryScanScrollPx = phoneScreen.clientHeight * scale * planespotArtworkHeightPercent / 100;
   story.style.setProperty('--livery-scroll', `${liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX}px`);
-  // Match the CSS 520vh story, rounding its total height up so the browser's
-  // end-of-page scroll rounding cannot nudge the sticky stage above the viewport.
-  story.style.height = `${Math.ceil(height * 5.2 + CENTER_HOLD_SCROLL_PX + liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX + FLEET_ZOOM_SCROLL_PX + FLEET_END_HOLD_SCROLL_PX + FINAL_SCREEN_SCROLL_PX)}px`;
+  // Browser chrome may change the visible stage, but must not remap the
+  // scroll journey mid-gesture. The mobile world uses the stable large viewport.
+  sceneDistance = worldHeight * 4.2;
+  scrollDistance = sceneDistance + CENTER_HOLD_SCROLL_PX + liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX + FLEET_ZOOM_SCROLL_PX + FLEET_END_HOLD_SCROLL_PX + FINAL_SCREEN_SCROLL_PX;
+  story.style.height = `${Math.ceil(height + scrollDistance)}px`;
+  storyTop = story.offsetTop;
   if (worldResized) {
     resizeCanvas(elements.airfield, worldWidth, worldHeight);
     worldDirty = true;
@@ -179,13 +189,13 @@ function measure() {
   phoneScreen.style.setProperty('--viewfinder-top', `${viewfinderTop}px`);
   phoneScreen.style.setProperty('--viewfinder-width', `${viewfinderWidth}px`);
   phoneScreen.style.setProperty('--viewfinder-height', `${viewfinderHeight}px`);
-  scrollDistance = Math.max(1, story.offsetHeight - height);
   const rasterKey = `${feedWidth}:${screenHeight}:${pixelRatio}`;
   if (loaded && cameraRasterKey !== rasterKey) {
     prepareViewfinder();
     paintCapturedPhoto();
     cameraRasterKey = rasterKey;
   }
+  syncScrollMotion();
   requestRender();
 }
 function paintWorld() {
@@ -246,7 +256,7 @@ function buildCameraScene() {
   originalContext.fillRect(0, 0, original.width, original.height);
   context.drawImage(original, 0, 0);
 }
-function paintViewfinder(phoneX, phoneY, framedX, framedY) {
+function viewfinderTransform(phoneX, phoneY, framedX, framedY) {
   const framing = getCameraFrame();
   const ratio = cameraLayout.width / framing.width;
   // One browser pixel of phone movement produces one opposite browser pixel
@@ -264,7 +274,7 @@ function paintViewfinder(phoneX, phoneY, framedX, framedY) {
   const imageX = cameraLayout.width / 2 - framing.x * ratio - (phoneX - framedX) / scale * panGain;
   const imageY = windowCenter - framing.y * ratio - (phoneY - framedY) / scale * panGain;
   // Pan a prepainted layer with the device. No canvas raster/upload per scroll frame.
-  elements.viewfinder.style.transform = `translate3d(${imageX}px,${imageY - cameraLayout.height}px,0)`;
+  return `translate3d(${imageX}px,${imageY - cameraLayout.height}px,0)`;
 }
 function prepareViewfinder() {
   const ratio = cameraLayout.width / getCameraFrame().width;
@@ -307,11 +317,51 @@ function paintCapturedPhoto() {
     sourceWidth * pixelsPerUnitX, sourceHeight * pixelsPerUnitY,
     0, 0, photoWidth, photoHeight);
 }
+function phonePose(progress, introProgress = 1) {
+  const rise = smooth(range(progress, timeline.rise));
+  const settle = smooth(range(progress, timeline.settle));
+  const projection = paintWorld();
+  const phoneWidth = deviceWidth * scale, phoneHeight = deviceHeight * scale;
+  const phoneStartY = width <= 600 ? contentHeight + phoneHeight / 6 : height;
+  const targetX = width <= 600 ? width / 2 : Math.max(phoneWidth / 2 + PHONE_HORIZONTAL_MARGIN_PX, Math.min(width - phoneWidth / 2 - PHONE_HORIZONTAL_MARGIN_PX, projection.targetX));
+  const targetY = Math.max(phoneHeight / 2 + PHONE_VERTICAL_MARGIN_PX, Math.min(contentHeight - phoneHeight / 2 - PHONE_VERTICAL_MARGIN_PX, projection.targetY));
+  let x = mix(width * 0.5, targetX, rise);
+  // Mobile starts with a third of the device visible above the footer.
+  let y = mix(phoneStartY, targetY, rise);
+  x = mix(x, width * 0.5, settle);
+  y = mix(y, contentHeight * 0.5, settle);
+  if (reducedMotion.matches) { x = width * 0.5; y = contentHeight * 0.5; }
+  // Compose the entrance with the existing scroll pose. Applying the same y
+  // to the camera keeps its scene projection matched to the moving device.
+  // Scrolling can advance naturally without waiting for this timed entrance.
+  y += (phoneHeight / 2 + 32) * (1 - captureEase(introProgress)) * (1 - rise);
+  return { x, y, targetX, targetY };
+}
+function phoneTransform({ x, y }) {
+  return `translate3d(${x - deviceWidth / 2}px,${y - deviceHeight / 2}px,0) scale(${scale})`;
+}
+function cameraTransform({ x, y, targetX, targetY }) {
+  return viewfinderTransform(x, y, targetX, targetY);
+}
+function syncScrollMotion() {
+  if (!loaded || !cameraLayout || !introComplete || reducedMotion.matches) {
+    scrollMotion.cancel();
+    elements.stage.dataset.motionDriver = 'javascript';
+    return;
+  }
+  const stops = [0, ...timeline.rise, ...timeline.settle];
+  scrollMotion.update({
+    phoneFrames: motionKeyframes(stops, progress => phoneTransform(phonePose(progress))),
+    cameraFrames: motionKeyframes(stops, progress => cameraTransform(phonePose(progress))),
+    start: storyTop,
+    end: storyTop + sceneDistance * timeline.settle[1],
+  });
+  elements.stage.dataset.motionDriver = scrollMotion.active ? 'native-scroll' : 'javascript';
+}
 function render(now) {
   frame = 0;
   if (disposed || !loaded || !width || !height) return;
-  const sceneDistance = Math.max(1, scrollDistance - CENTER_HOLD_SCROLL_PX - liveryScanScrollPx - LIVERY_END_HOLD_SCROLL_PX - FLEET_ZOOM_SCROLL_PX - FLEET_END_HOLD_SCROLL_PX - FINAL_SCREEN_SCROLL_PX);
-  const scrollPosition = Math.max(0, scrollY - story.offsetTop);
+  const scrollPosition = Math.max(0, scrollY - storyTop);
   if (!scrollCueDismissed && scrollPosition > 0) {
     scrollCueDismissed = true;
     elements.stage.dataset.scrollCueDismissed = 'true';
@@ -322,9 +372,11 @@ function render(now) {
     introComplete = scrollPosition > 0 || reducedMotion.matches;
   }
   if (reducedMotion.matches) introComplete = true;
+  const wasIntroComplete = introComplete;
   const phoneIntroProgress = introComplete ? 1 : clamp((now - introStartedAt - phoneIntroStart) / intro.phoneDuration);
   if (phoneIntroProgress === 1) introComplete = true;
   elements.stage.dataset.intro = introComplete ? 'complete' : 'running';
+  if (introComplete && !reducedMotion.matches && scrollMotion.available && (!wasIntroComplete || !scrollMotion.active)) syncScrollMotion();
   const holdStart = sceneDistance * timeline.settle[1];
   // Insert a fixed 1,000 CSS-pixel pause at the centred pose. The scene clock
   // stops while native page scrolling continues, then resumes for the crossfade.
@@ -346,32 +398,13 @@ function render(now) {
   const captureElapsed = captureStartedAt === null ? 0 : now - captureStartedAt;
   if (!returningToCamera && captureStartedAt !== null && captureElapsed >= 180) captureHasSnapped = true;
   previousScrollPosition = scrollPosition;
-  const rise = smooth(range(p, timeline.rise));
-  const settle = smooth(range(p, timeline.settle));
-  const projection = paintWorld();
-  const phoneWidth = deviceWidth * scale, phoneHeight = deviceHeight * scale;
-  const phoneStartY = width <= 600 ? contentHeight + phoneHeight / 6 : height;
-  // Keep the mobile hero centered above the settled entrance pose, independent
-  // of the phone's temporary intro offset and subsequent scroll movement.
-  introCopy.style.setProperty('--phone-start-top', `${phoneStartY - phoneHeight / 2}px`);
-  const targetX = width <= 600 ? width / 2 : Math.max(phoneWidth / 2 + PHONE_HORIZONTAL_MARGIN_PX, Math.min(width - phoneWidth / 2 - PHONE_HORIZONTAL_MARGIN_PX, projection.targetX));
-  const targetY = Math.max(phoneHeight / 2 + PHONE_VERTICAL_MARGIN_PX, Math.min(contentHeight - phoneHeight / 2 - PHONE_VERTICAL_MARGIN_PX, projection.targetY));
-  let x = mix(width * 0.5, targetX, rise);
-  // Mobile starts with a third of the device visible above the footer.
-  let y = mix(phoneStartY, targetY, rise);
-  x = mix(x, width * 0.5, settle);
-  y = mix(y, contentHeight * 0.5, settle);
-  if (reducedMotion.matches) { x = width * 0.5; y = contentHeight * 0.5; }
-  // Compose the entrance with the existing scroll pose. Applying the same y
-  // to the camera keeps its scene projection matched to the moving device.
-  // Scrolling can advance naturally without waiting for this timed entrance.
-  y += (phoneHeight / 2 + 32) * (1 - captureEase(phoneIntroProgress)) * (1 - rise);
-  elements.phone.style.transform = `translate3d(${x - deviceWidth / 2}px,${y - deviceHeight / 2}px,0) scale(${scale})`;
-  // Fade both hero lines together from the first scroll pixel, finishing
-  // before the phone's rise stops at .37. Their position stays fixed in CSS.
-  // With no transition or direction latch, scrolling up restores it exactly.
+  if (!scrollMotion.active) {
+    const pose = phonePose(p, phoneIntroProgress);
+    elements.phone.style.transform = phoneTransform(pose);
+    elements.viewfinder.style.transform = cameraTransform(pose);
+  }
+  // Text and capture events still follow the same physical scroll positions.
   introCopy.style.opacity = 1 - range(p, timeline.introHeadline);
-  paintViewfinder(x, y, targetX, targetY);
   const shutterProgress = returningToCamera ? range(p, timeline.shutter) : clamp(captureElapsed / 540);
   // Same close / hold / open proportions as PaywallOnboardingScene.tsx:
   // 180ms, 120ms, 240ms. Play the blades only on the forward capture path.
@@ -451,7 +484,8 @@ function render(now) {
   elements['final-screen-symbol'].style.opacity = finalFlicker;
   elements['final-screen-symbol'].style.transform = `translate(-50%, -50%) translateY(${-60 * cameraLayout.width / 440 * finalLiftProgress}px)`;
   elements['final-screen-copy'].style.opacity = finalTypeProgress > 0 ? 1 : 0;
-  elements['final-screen-copy'].textContent = finalScreenTriggered ? finalScreenCopy.slice(0, Math.ceil(finalScreenCopy.length * finalTypeProgress)) : finalScreenCopy;
+  const finalText = finalScreenTriggered ? finalScreenCopy.slice(0, Math.ceil(finalScreenCopy.length * finalTypeProgress)) : finalScreenCopy;
+  if (elements['final-screen-copy'].textContent !== finalText) elements['final-screen-copy'].textContent = finalText;
   elements['final-screen-copy'].dataset.typing = finalScreenTriggered && finalTypeProgress > 0 && finalTypeProgress < 1 ? 'true' : 'false';
   elements.stage.dataset.fleetProgress = fleetProgress.toFixed(4);
   elements.stage.dataset.screen = finalOverlayProgress > .5 ? 'final' : fleetProgress > .5 ? 'home' : photoReveal < 0.5 ? 'camera' : spotReveal > 0.5 ? 'spot' : 'photo';
@@ -475,7 +509,8 @@ observer.observe(siteFooter);
 window.addEventListener('scroll', requestRender, { passive: true });
 window.addEventListener('resize', measure, { passive: true });
 window.addEventListener('pageshow', measure);
-reducedMotion.addEventListener('change', requestRender);
+function onMotionPreferenceChange() { syncScrollMotion(); requestRender(); }
+reducedMotion.addEventListener('change', onMotionPreferenceChange);
 scene.image.src = scene.source;
 cameraScene.extension.src = cameraScene.source;
 Promise.all([document.fonts.ready, scene.image.decode(), cameraScene.extension.decode(), planespotScreenshot.decode(), planespotBlankScreenshot.decode(), planespotDetailsBackground.decode(), fleetScreenshot.decode()]).then(() => {
@@ -493,5 +528,6 @@ window.addEventListener('pagehide', event => {
   window.removeEventListener('scroll', requestRender);
   window.removeEventListener('resize', measure);
   window.removeEventListener('pageshow', measure);
-  reducedMotion.removeEventListener('change', requestRender);
+  reducedMotion.removeEventListener('change', onMotionPreferenceChange);
+  scrollMotion.cancel();
 });
