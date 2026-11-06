@@ -114,6 +114,8 @@ let liveryScanScrollPx = 1;
 let pixelRatio = 1;
 let previousScrollPosition = null, returningToCamera = false;
 let cameraLayout = null;
+let cameraRasterKey = null;
+let scrollDistance = 1;
 let introStartedAt = null, introComplete = false;
 let captureStartedAt = null, captureHasSnapped = false;
 let scrollCueDismissed = false;
@@ -162,22 +164,28 @@ function measure() {
   }
   // Match Planeroll's Add Plane camera layout at a scaled 440pt viewport.
   // Source: planeroll/app/(add-plane)/add-plane.tsx and constants/theme.ts.
-  const cameraUnit = elements.viewfinder.clientWidth / 440;
-  const screenHeight = elements.viewfinder.clientHeight;
+  const feedWidth = elements.viewfinder.parentElement.clientWidth;
+  const cameraUnit = feedWidth / 440;
+  const screenHeight = elements.viewfinder.parentElement.clientHeight;
   const footerHeight = (144 + 32) * cameraUnit;
   const headerHeight = (62 + 44) * cameraUnit;
   const availableViewfinderHeight = screenHeight - 144 * cameraUnit - headerHeight;
-  const viewfinderHeight = Math.min(elements.viewfinder.clientWidth * 4 / 3, availableViewfinderHeight);
+  const viewfinderHeight = Math.min(feedWidth * 4 / 3, availableViewfinderHeight);
   const viewfinderWidth = viewfinderHeight * 3 / 4;
   const viewfinderTop = screenHeight - footerHeight - viewfinderHeight;
-  cameraLayout = { width: elements.viewfinder.clientWidth, height: screenHeight, viewfinderHeight, viewfinderTop, screenTop: phoneScreen.offsetTop + elements.phone.clientTop };
+  cameraLayout = { width: feedWidth, height: screenHeight, viewfinderHeight, viewfinderTop, screenTop: phoneScreen.offsetTop + elements.phone.clientTop };
   elements['camera-app'].style.setProperty('--camera-unit', `${cameraUnit}px`);
   phoneScreen.style.setProperty('--phone-unit', `${cameraUnit}px`);
   phoneScreen.style.setProperty('--viewfinder-top', `${viewfinderTop}px`);
   phoneScreen.style.setProperty('--viewfinder-width', `${viewfinderWidth}px`);
   phoneScreen.style.setProperty('--viewfinder-height', `${viewfinderHeight}px`);
-  resizeCanvas(elements.viewfinder, elements.viewfinder.clientWidth, elements.viewfinder.clientHeight);
-  paintCapturedPhoto();
+  scrollDistance = Math.max(1, story.offsetHeight - height);
+  const rasterKey = `${feedWidth}:${screenHeight}:${pixelRatio}`;
+  if (loaded && cameraRasterKey !== rasterKey) {
+    prepareViewfinder();
+    paintCapturedPhoto();
+    cameraRasterKey = rasterKey;
+  }
   requestRender();
 }
 function paintWorld() {
@@ -255,16 +263,27 @@ function paintViewfinder(phoneX, phoneY, framedX, framedY) {
   const panGain = reducedMotion.matches ? 0 : Math.min(1, groundRoom / phoneTravel, fullWindowRoom / Math.max(1, phoneTravel - revealTravel));
   const imageX = cameraLayout.width / 2 - framing.x * ratio - (phoneX - framedX) / scale * panGain;
   const imageY = windowCenter - framing.y * ratio - (phoneY - framedY) / scale * panGain;
-  const imageWidth = cameraScene.width * ratio, imageHeight = cameraScene.height * ratio;
-  cameraContext.clearRect(0, 0, cameraLayout.width, cameraLayout.height);
-  // Extend only the sky above the image for the translucent header.
-  cameraContext.save();
-  cameraContext.translate(0, imageY);
-  cameraContext.scale(1, -1);
-  cameraContext.drawImage(cameraScene.canvas, imageX, 0, imageWidth, imageHeight);
-  cameraContext.restore();
-  cameraContext.drawImage(cameraScene.canvas, imageX, imageY, imageWidth, imageHeight);
+  // Pan a prepainted layer with the device. No canvas raster/upload per scroll frame.
+  elements.viewfinder.style.transform = `translate3d(${imageX}px,${imageY - cameraLayout.height}px,0)`;
 }
+function prepareViewfinder() {
+  const ratio = cameraLayout.width / getCameraFrame().width;
+  const imageWidth = cameraScene.width * ratio;
+  const imageHeight = cameraScene.height * ratio;
+  const skyHeight = cameraLayout.height;
+  elements.viewfinder.style.width = `${imageWidth}px`;
+  elements.viewfinder.style.height = `${imageHeight + skyHeight}px`;
+  resizeCanvas(elements.viewfinder, imageWidth, imageHeight + skyHeight);
+  cameraContext.clearRect(0, 0, imageWidth, imageHeight + skyHeight);
+  // Cache the reflected sky above the original image, preserving the old crop.
+  cameraContext.save();
+  cameraContext.translate(0, skyHeight);
+  cameraContext.scale(1, -1);
+  cameraContext.drawImage(cameraScene.canvas, 0, 0, imageWidth, imageHeight);
+  cameraContext.restore();
+  cameraContext.drawImage(cameraScene.canvas, 0, skyHeight, imageWidth, imageHeight);
+}
+
 function paintCapturedPhoto() {
   if (!loaded) return;
   const canvas = elements['captured-photo'];
@@ -291,7 +310,6 @@ function paintCapturedPhoto() {
 function render(now) {
   frame = 0;
   if (disposed || !loaded || !width || !height) return;
-  const scrollDistance = Math.max(1, story.offsetHeight - height);
   const sceneDistance = Math.max(1, scrollDistance - CENTER_HOLD_SCROLL_PX - liveryScanScrollPx - LIVERY_END_HOLD_SCROLL_PX - FLEET_ZOOM_SCROLL_PX - FLEET_END_HOLD_SCROLL_PX - FINAL_SCREEN_SCROLL_PX);
   const scrollPosition = Math.max(0, scrollY - story.offsetTop);
   if (!scrollCueDismissed && scrollPosition > 0) {
@@ -411,7 +429,7 @@ function render(now) {
   collectionNavigation.style.opacity = snapped ? spotReveal : 0;
   fleetHome.style.setProperty('--fleet-scale', reducedMotion.matches ? 1 : mix(1 / .22, 1, fleetZoom));
   elements['spot-app'].style.transformOrigin = '50% 35%';
-  elements['spot-app'].style.transform = reducedMotion.matches ? 'none' : `translateY(${phoneScreen.clientHeight * .214 * fleetZoom}px) scale(${mix(1, .22, fleetZoom)})`;
+  elements['spot-app'].style.transform = reducedMotion.matches ? 'none' : `translateY(${cameraLayout.height * .214 * fleetZoom}px) scale(${mix(1, .22, fleetZoom)})`;
   elements['spot-app'].style.opacity = snapped ? spotReveal * (1 - fleetFade) : 0;
   // Keep the photo from showing through the shrinking planespot.
   elements['photo-review'].style.opacity = photoReveal * (1 - spotReveal);
