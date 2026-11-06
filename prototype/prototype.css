@@ -11,6 +11,11 @@ body { overflow-x: clip; }
 @keyframes scene-reveal { from { opacity: .75; } to { opacity: 0; visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) { .stage[data-ready="true"]::after { animation-duration: 1ms; animation-delay: 0ms; } }
 .world { position: absolute; inset: 0; will-change: opacity; }
+/* Browser chrome changes the visible stage, not the scenery's crop. Keep a
+   full-height backing surface and let the stage clip it as toolbars move. */
+@media (max-width: 1200px) and (hover: none) {
+  .world { bottom: auto; height: 100vh; height: 100lvh; }
+}
 .world canvas { width: 100%; height: 100%; display: block; }
 .world::after { content: ''; position: absolute; inset: 0; background: linear-gradient(var(--scrim-angle, 150deg), rgb(0 0 0 / var(--scrim-opacity, .65)) 0px, rgb(0 0 0 / 0) var(--scrim-distance, 50%)); pointer-events: none; }
 .intro-copy {

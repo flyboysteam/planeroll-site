@@ -108,6 +108,7 @@ const planespotArtworkHeightPercent = parseFloat(getComputedStyle(elements['spot
 const phoneScreen = elements.phone.querySelector('.phone-screen');
 let width = 0, height = 0, scale = 1, frame = 0, loaded = false, disposed = false, worldDirty = true;
 let deviceWidth = 0, deviceHeight = 0;
+let worldWidth = 0, worldHeight = 0;
 let contentHeight = 0;
 let liveryScanScrollPx = 1;
 let pixelRatio = 1;
@@ -128,8 +129,14 @@ function resizeCanvas(canvas, cssWidth, cssHeight) {
 function measure() {
   width = elements.stage.clientWidth;
   height = elements.stage.clientHeight;
-  gradient.update(width, height);
-  pixelRatio = Math.min(devicePixelRatio || 1, 2);
+  const nextWorldWidth = elements.world.clientWidth;
+  const nextWorldHeight = elements.world.clientHeight;
+  const nextPixelRatio = Math.min(devicePixelRatio || 1, 2);
+  const worldResized = worldWidth !== nextWorldWidth || worldHeight !== nextWorldHeight || pixelRatio !== nextPixelRatio;
+  worldWidth = nextWorldWidth;
+  worldHeight = nextWorldHeight;
+  gradient.update(worldWidth, worldHeight);
+  pixelRatio = nextPixelRatio;
   deviceWidth = elements.phone.offsetWidth;
   deviceHeight = elements.phone.offsetHeight;
   contentHeight = Math.max(1, height - siteFooter.getBoundingClientRect().height);
@@ -146,8 +153,13 @@ function measure() {
   // Match the CSS 520vh story, rounding its total height up so the browser's
   // end-of-page scroll rounding cannot nudge the sticky stage above the viewport.
   story.style.height = `${Math.ceil(height * 5.2 + CENTER_HOLD_SCROLL_PX + liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX + FLEET_ZOOM_SCROLL_PX + FLEET_END_HOLD_SCROLL_PX + FINAL_SCREEN_SCROLL_PX)}px`;
-  resizeCanvas(elements.airfield, width, height);
-  worldDirty = true;
+  if (worldResized) {
+    resizeCanvas(elements.airfield, worldWidth, worldHeight);
+    worldDirty = true;
+    // Resizing clears a canvas. Repaint in this same callback so Safari cannot
+    // composite a blank backing surface before the next animation frame.
+    if (loaded) paintWorld();
+  }
   // Match Planeroll's Add Plane camera layout at a scaled 440pt viewport.
   // Source: planeroll/app/(add-plane)/add-plane.tsx and constants/theme.ts.
   const cameraUnit = elements.viewfinder.clientWidth / 440;
@@ -171,14 +183,14 @@ function measure() {
 function paintWorld() {
   // Minimum cover scale: preserve as much of the aircraft as possible without
   // exposing empty space at the viewport edges.
-  const cover = Math.max(width / scene.width, height / scene.height);
+  const cover = Math.max(worldWidth / scene.width, worldHeight / scene.height);
   const centeredX = (width - scene.width * cover) / 2;
-  const narrowCrop = clamp((1.35 - width / height) / 0.85);
+  const narrowCrop = clamp((1.35 - worldWidth / worldHeight) / 0.85);
   const cropX = width <= 600 ? width * .5 - scene.target.x * cover : mix(centeredX, width * .55 - scene.target.x * cover, narrowCrop);
   const x = Math.max(width - scene.width * cover, Math.min(0, cropX));
-  const y = (height - scene.height * cover) / 2;
+  const y = (worldHeight - scene.height * cover) / 2;
   if (worldDirty) {
-    worldContext.clearRect(0, 0, width, height);
+    worldContext.clearRect(0, 0, worldWidth, worldHeight);
     // Offset only the scenery; retain the original projection for phone motion
     // and the independent viewfinder/captured-photo framing.
     worldContext.drawImage(scene.image, x - (width <= 600 ? 64 : 0), y - (width <= 600 ? 64 : 0), scene.width * cover, scene.height * cover);
