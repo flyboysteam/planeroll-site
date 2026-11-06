@@ -1,5 +1,5 @@
 import { mountStatusClock } from './status-clock.js';
-import { mountGradient } from './gradient.js?v=3';
+import { mountGradient } from './gradient.js?v=4';
 
 // After the one-time entrance, positions and blends follow scroll progress.
 // The return journey crossfades to the camera instead of reversing the shutter.
@@ -39,6 +39,11 @@ const cameraScene = {
 };
 const CENTER_HOLD_SCROLL_PX = 1000;
 const LIVERY_END_HOLD_SCROLL_PX = 250;
+const FLEET_ZOOM_SCROLL_PX = 1100;
+const FLEET_END_HOLD_SCROLL_PX = 300;
+const fleetHome = $('collection-home');
+const collectionNavigation = $('collection-navigation');
+const fleetScreenshot = $('collection-screenshot');
 const PHONE_VERTICAL_MARGIN_PX = 32;
 const PHONE_HORIZONTAL_MARGIN_PX = 24;
 const PHONE_PREFERRED_MIN_HEIGHT_PX = 440;
@@ -79,6 +84,7 @@ let pixelRatio = 1;
 let previousScrollPosition = null, returningToCamera = false;
 let cameraLayout = null;
 let introStartedAt = null, introComplete = false;
+let captureStartedAt = null, captureHasSnapped = false;
 let scrollCueDismissed = false;
 
 function resizeCanvas(canvas, cssWidth, cssHeight) {
@@ -107,7 +113,7 @@ function measure() {
   story.style.setProperty('--livery-scroll', `${liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX}px`);
   // Match the CSS 520vh story, rounding its total height up so the browser's
   // end-of-page scroll rounding cannot nudge the sticky stage above the viewport.
-  story.style.height = `${Math.ceil(height * 5.2 + CENTER_HOLD_SCROLL_PX + liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX)}px`;
+  story.style.height = `${Math.ceil(height * 5.2 + CENTER_HOLD_SCROLL_PX + liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX + FLEET_ZOOM_SCROLL_PX + FLEET_END_HOLD_SCROLL_PX)}px`;
   resizeCanvas(elements.airfield, width, height);
   worldDirty = true;
   // Match Planeroll's Add Plane camera layout at a scaled 440pt viewport.
@@ -131,14 +137,19 @@ function measure() {
   requestRender();
 }
 function paintWorld() {
+  // Minimum cover scale: preserve as much of the aircraft as possible without
+  // exposing empty space at the viewport edges.
   const cover = Math.max(width / scene.width, height / scene.height);
   const centeredX = (width - scene.width * cover) / 2;
   const narrowCrop = clamp((1.35 - width / height) / 0.85);
-  const x = Math.max(width - scene.width * cover, Math.min(0, mix(centeredX, width * 0.55 - scene.target.x * cover, narrowCrop)));
+  const cropX = width <= 600 ? width * .5 - scene.target.x * cover : mix(centeredX, width * .55 - scene.target.x * cover, narrowCrop);
+  const x = Math.max(width - scene.width * cover, Math.min(0, cropX));
   const y = (height - scene.height * cover) / 2;
   if (worldDirty) {
     worldContext.clearRect(0, 0, width, height);
-    worldContext.drawImage(scene.image, x, y, scene.width * cover, scene.height * cover);
+    // Offset only the scenery; retain the original projection for phone motion
+    // and the independent viewfinder/captured-photo framing.
+    worldContext.drawImage(scene.image, x - (width <= 600 ? 64 : 0), y - (width <= 600 ? 64 : 0), scene.width * cover, scene.height * cover);
     worldDirty = false;
   }
   return { cover, x, y, targetX: x + scene.target.x * cover, targetY: y + scene.target.y * cover };
@@ -237,7 +248,7 @@ function render(now) {
   frame = 0;
   if (disposed || !loaded || !width || !height) return;
   const scrollDistance = Math.max(1, story.offsetHeight - height);
-  const sceneDistance = Math.max(1, scrollDistance - CENTER_HOLD_SCROLL_PX - liveryScanScrollPx - LIVERY_END_HOLD_SCROLL_PX);
+  const sceneDistance = Math.max(1, scrollDistance - CENTER_HOLD_SCROLL_PX - liveryScanScrollPx - LIVERY_END_HOLD_SCROLL_PX - FLEET_ZOOM_SCROLL_PX - FLEET_END_HOLD_SCROLL_PX);
   const scrollPosition = Math.max(0, scrollY - story.offsetTop);
   if (!scrollCueDismissed && scrollPosition > 0) {
     scrollCueDismissed = true;
@@ -262,18 +273,30 @@ function render(now) {
   if (previousScrollPosition !== null && scrollPosition < previousScrollPosition) returningToCamera = true;
   // Keep the return path when direction changes within the capture interval.
   // Rearm the shutter only after the camera is fully restored, before its press.
-  if (p <= timeline.press[0]) returningToCamera = false;
+  if (p <= timeline.press[0]) {
+    returningToCamera = false;
+    captureStartedAt = null;
+    captureHasSnapped = false;
+  }
+  // Upward scrolling cancels the clock; returning to the camera rearms it.
+  if (returningToCamera) captureStartedAt = null;
+  if (!returningToCamera && p >= timeline.shutter[0] && captureStartedAt === null) captureStartedAt = now;
+  const captureElapsed = captureStartedAt === null ? 0 : now - captureStartedAt;
+  if (!returningToCamera && captureStartedAt !== null && captureElapsed >= 180) captureHasSnapped = true;
   previousScrollPosition = scrollPosition;
   const rise = smooth(range(p, timeline.rise));
   const settle = smooth(range(p, timeline.settle));
   const projection = paintWorld();
   const phoneWidth = deviceWidth * scale, phoneHeight = deviceHeight * scale;
-  const targetX = Math.max(phoneWidth / 2 + PHONE_HORIZONTAL_MARGIN_PX, Math.min(width - phoneWidth / 2 - PHONE_HORIZONTAL_MARGIN_PX, projection.targetX));
+  const phoneStartY = width <= 600 ? contentHeight + phoneHeight / 6 : height;
+  // Keep the mobile hero centered above the settled entrance pose, independent
+  // of the phone's temporary intro offset and subsequent scroll movement.
+  introCopy.style.setProperty('--phone-start-top', `${phoneStartY - phoneHeight / 2}px`);
+  const targetX = width <= 600 ? width / 2 : Math.max(phoneWidth / 2 + PHONE_HORIZONTAL_MARGIN_PX, Math.min(width - phoneWidth / 2 - PHONE_HORIZONTAL_MARGIN_PX, projection.targetX));
   const targetY = Math.max(phoneHeight / 2 + PHONE_VERTICAL_MARGIN_PX, Math.min(contentHeight - phoneHeight / 2 - PHONE_VERTICAL_MARGIN_PX, projection.targetY));
   let x = mix(width * 0.5, targetX, rise);
-  // On narrow screens the entrance sits above the compact footer, so the
-  // camera is visible immediately instead of disappearing behind navigation.
-  let y = mix(width <= 600 ? contentHeight : height, targetY, rise);
+  // Mobile starts with a third of the device visible above the footer.
+  let y = mix(phoneStartY, targetY, rise);
   x = mix(x, width * 0.5, settle);
   y = mix(y, contentHeight * 0.5, settle);
   if (reducedMotion.matches) { x = width * 0.5; y = contentHeight * 0.5; }
@@ -287,7 +310,7 @@ function render(now) {
   // With no transition or direction latch, scrolling up restores it exactly.
   introCopy.style.opacity = 1 - range(p, timeline.introHeadline);
   paintViewfinder(x, y, targetX, targetY);
-  const shutterProgress = range(p, timeline.shutter);
+  const shutterProgress = returningToCamera ? range(p, timeline.shutter) : clamp(captureElapsed / 540);
   // Same close / hold / open proportions as PaywallOnboardingScene.tsx:
   // 180ms, 120ms, 240ms. Play the blades only on the forward capture path.
   const closing = clamp(shutterProgress / (180 / 540));
@@ -298,29 +321,33 @@ function render(now) {
   elements['shutter-blade-bottom'].style.transform = `translateY(${bladeOffset}%)`;
   elements['capture-shutter'].style.opacity = reducedMotion.matches ? closure : 1;
   elements['capture-shutter'].style.visibility = closure > 0 ? 'visible' : 'hidden';
-  const pressProgress = range(p, timeline.press);
+  const pressProgress = clamp(captureElapsed / 180);
   const press = returningToCamera ? 0 : pressProgress < 0.4 ? captureEase(pressProgress / 0.4) : 1 - captureEase((pressProgress - 0.4) / 0.6);
-  const capturedAt = timeline.shutter[0] + (timeline.shutter[1] - timeline.shutter[0]) * (180 / 540);
-  const snapped = p >= capturedAt;
-  const photoReveal = returningToCamera ? smooth(shutterProgress) : snapped ? 1 : 0;
+  const snapped = captureHasSnapped;
+  const photoReveal = !snapped ? 0 : returningToCamera ? smooth(shutterProgress) : 1;
   phoneScreen.dataset.capture = snapped ? 'photo' : 'camera';
-  const spotReveal = smooth(range(p, timeline.photoToSpot));
+  const captureFinished = returningToCamera || captureElapsed >= 540;
+  const spotReveal = captureFinished ? smooth(range(p, timeline.photoToSpot)) : 0;
   // Start the loading treatment after the blades reopen. Stop its animations
   // while hidden, and let the existing screen crossfades reveal/hide it.
-  elements['photo-review'].dataset.analyzing = photoReveal > 0 && p >= timeline.shutter[1] && spotReveal < 1 ? 'true' : 'false';
+  elements['photo-review'].dataset.analyzing = photoReveal > 0 && captureFinished && spotReveal < 1 ? 'true' : 'false';
   elements.shutter.style.transform = `scale(${reducedMotion.matches ? 1 : 1 - press * 0.16})`;
-  const backgroundFade = smooth(range(p, timeline.fade));
+  const backgroundFade = !snapped ? 0 : returningToCamera ? smooth(range(p, timeline.fade)) : smooth(clamp((captureElapsed - 180) / 600));
   elements.world.style.opacity = mix(1, 0.11, backgroundFade);
-  // Keep the camera opaque underneath the returning photo so the crossfade
-  // reveals the live view without a dip to black. Forward capture stays instant.
-  elements['camera-app'].style.opacity = returningToCamera || !snapped ? 1 : 0;
+  // Scrolling upward in the collection must not restore the camera beneath
+  // translucent layers. Restore it only when the photo itself fades back out.
+  const cameraVisible = !snapped || (returningToCamera && photoReveal < 1);
+  elements['camera-app'].style.opacity = cameraVisible ? 1 : 0;
+  // Remove the live canvas from compositing after capture, rather than leaving
+  // an opacity-zero canvas beneath the shutter/photo layers on mobile WebKit.
+  elements['camera-app'].style.visibility = cameraVisible ? 'visible' : 'hidden';
   elements['photo-review'].style.opacity = photoReveal;
   elements['spot-app'].style.opacity = snapped ? spotReveal : 0;
   // After the photo crossfade and the existing settled-screen pause, scrub the
   // app's vertical reveal directly from scroll pixels. Returning restores the
   // blank below the beam, with no timed playback, easing, or direction latch.
   const liveryStart = sceneDistance + CENTER_HOLD_SCROLL_PX;
-  const liveryProgress = clamp((scrollPosition - liveryStart) / liveryScanScrollPx);
+  const liveryProgress = snapped && captureFinished ? clamp((scrollPosition - liveryStart) / liveryScanScrollPx) : 0;
   // Latch for this page load: the details keep revealing even if scrolling
   // stops or reverses, and returning to the blank aircraft never covers them.
   if (liveryProgress > 0 && elements['spot-app'].dataset.detailsRevealed !== 'true') {
@@ -330,9 +357,25 @@ function render(now) {
   elements['spot-app'].style.setProperty('--spot-scan-y', `${reducedMotion.matches ? 0 : liveryProgress * planespotArtworkHeightPercent}%`);
   elements['spot-app'].style.setProperty('--spot-blank-opacity', reducedMotion.matches ? 1 - liveryProgress : 1);
   elements['spot-app'].style.setProperty('--spot-scan-opacity', reducedMotion.matches ? 0 : scanOpacity);
-  elements.stage.dataset.screen = photoReveal < 0.5 ? 'camera' : spotReveal > 0.5 ? 'spot' : 'photo';
+  // App step 3 → 4: 1100ms zoom to .22, with a quicker 650ms UI fade.
+  // Map those proportions to scroll distance so the complete reveal reverses.
+  const fleetStart = liveryStart + liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX;
+  const fleetProgress = snapped && captureFinished ? clamp((scrollPosition - fleetStart) / FLEET_ZOOM_SCROLL_PX) : 0;
+  const fleetZoom = captureEase(fleetProgress);
+  const fleetFade = captureEase(clamp(fleetProgress * 1100 / 650));
+  fleetHome.style.opacity = fleetFade;
+  collectionNavigation.style.opacity = snapped ? spotReveal : 0;
+  fleetHome.style.setProperty('--fleet-scale', reducedMotion.matches ? 1 : mix(1 / .22, 1, fleetZoom));
+  elements['spot-app'].style.transformOrigin = '50% 35%';
+  elements['spot-app'].style.transform = reducedMotion.matches ? 'none' : `translateY(${phoneScreen.clientHeight * .214 * fleetZoom}px) scale(${mix(1, .22, fleetZoom)})`;
+  elements['spot-app'].style.opacity = snapped ? spotReveal * (1 - fleetFade) : 0;
+  // Keep the photo from showing through the shrinking planespot.
+  elements['photo-review'].style.opacity = photoReveal * (1 - spotReveal);
+  elements.stage.dataset.fleetProgress = fleetProgress.toFixed(4);
+  elements.stage.dataset.screen = fleetProgress > .5 ? 'home' : photoReveal < 0.5 ? 'camera' : spotReveal > 0.5 ? 'spot' : 'photo';
   elements.stage.dataset.capturePath = returningToCamera ? 'return' : 'forward';
-  elements.stage.dataset.phase = p < 0.12 ? 'ready' : p < capturedAt ? 'framing' : spotReveal === 0 ? 'captured' : 'collection';
+  elements.stage.dataset.phase = p < 0.12 ? 'ready' : !snapped ? 'framing' : spotReveal === 0 ? 'captured' : 'collection';
+  elements.stage.dataset.captureElapsed = captureElapsed.toFixed(0);
   elements.stage.dataset.progress = pageProgress.toFixed(4);
   elements.stage.dataset.sceneProgress = p.toFixed(4);
   elements.stage.dataset.holdStart = holdStart.toFixed(2);
@@ -341,7 +384,7 @@ function render(now) {
   elements.stage.dataset.liveryStart = liveryStart.toFixed(2);
   elements.stage.dataset.liveryEnd = (liveryStart + liveryScanScrollPx).toFixed(2);
   elements.stage.dataset.ready = 'true';
-  if (!introComplete) requestRender();
+  if (!introComplete || (!returningToCamera && captureStartedAt !== null && captureElapsed < 780)) requestRender();
 }
 function requestRender() { if (!frame && !disposed) frame = requestAnimationFrame(render); }
 const observer = new ResizeObserver(measure);
@@ -353,7 +396,7 @@ window.addEventListener('pageshow', measure);
 reducedMotion.addEventListener('change', requestRender);
 scene.image.src = scene.source;
 cameraScene.extension.src = cameraScene.source;
-Promise.all([document.fonts.ready, scene.image.decode(), cameraScene.extension.decode(), planespotScreenshot.decode(), planespotBlankScreenshot.decode(), planespotDetailsBackground.decode()]).then(() => {
+Promise.all([document.fonts.ready, scene.image.decode(), cameraScene.extension.decode(), planespotScreenshot.decode(), planespotBlankScreenshot.decode(), planespotDetailsBackground.decode(), fleetScreenshot.decode()]).then(() => {
   if (disposed) return;
   buildCameraScene();
   loaded = true;

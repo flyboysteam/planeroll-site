@@ -17,7 +17,7 @@
   color: var(--pr-white-primary);
   background: var(--pr-background);
 }
-.camera-feed { position: absolute; inset: 0; overflow: hidden; }
+.camera-feed { position: absolute; inset: 0; overflow: hidden; clip-path: inset(0 round 57px); }
 .camera-feed canvas { width: 100%; height: 100%; display: block; }
 .camera-window { position: absolute; top: var(--viewfinder-top); left: 50%; transform: translateX(-50%); width: var(--viewfinder-width); height: var(--viewfinder-height); overflow: hidden; }
 .viewfinder-grid { position: absolute; inset: 0; }

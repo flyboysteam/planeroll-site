@@ -11,18 +11,46 @@ if (footer && nav) {
   toggle.innerHTML = '<span></span><span></span>';
   footer.insertBefore(toggle, nav);
   footer.dataset.menuReady = 'true';
+  const panel = document.createElement('div');
+  panel.className = 'mobile-menu';
+  panel.setAttribute('role', 'region');
+  panel.setAttribute('aria-label', 'Navigation');
+  panel.innerHTML = '<div class="mobile-menu-header"><img src="/assets/planeroll-symbol-with-effects.svg" alt="Planeroll"></div>';
+  document.body.append(panel);
+  const measureFooter = () => panel.style.setProperty('--menu-footer-height', `${footer.getBoundingClientRect().height}px`);
+  const footerObserver = new ResizeObserver(measureFooter);
+  footerObserver.observe(footer);
+  measureFooter();
+  const main = document.querySelector('main');
+  let isOpen = false;
   function setOpen(open, restoreFocus = false) {
+    open = open && compact.matches;
+    isOpen = open;
     toggle.setAttribute('aria-expanded', String(open));
     toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
-    nav.hidden = compact.matches && !open;
+    panel.dataset.open = String(open);
+    panel.inert = !open;
+    panel.setAttribute('aria-hidden', String(!open));
+    document.documentElement.classList.toggle('mobile-menu-open', open);
+    if (main) main.inert = open;
     if (restoreFocus) toggle.focus();
   }
-  setOpen(false);
+  function syncLayout() {
+    setOpen(false);
+    (compact.matches ? panel : footer).append(nav);
+  }
+  syncLayout();
   toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
   nav.addEventListener('click', event => { if (event.target.closest('a')) setOpen(false); });
-  document.addEventListener('click', event => { if (!footer.contains(event.target)) setOpen(false); });
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') setOpen(false, true);
+    if (!isOpen) return;
+    if (event.key === 'Escape') setOpen(false, true);
+    if (event.key === 'Tab') {
+      const last = nav.querySelector('a:last-child');
+      const brand = footer.querySelector('.site-footer-brand');
+      if (event.shiftKey && document.activeElement === brand) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); brand.focus(); }
+    }
   });
-  compact.addEventListener('change', () => setOpen(false));
+  compact.addEventListener('change', syncLayout);
 }

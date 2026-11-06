@@ -14,7 +14,10 @@ export function gradientGeometry(settings, width, height) {
 export function mountGradient({ world }) {
   return {
     update(width, height) {
-      const geometry = gradientGeometry(DEFAULT_GRADIENT, width, height);
+      const settings = width <= 600
+        ? { ...DEFAULT_GRADIENT, end: { x: 0, y: .5 } }
+        : DEFAULT_GRADIENT;
+      const geometry = gradientGeometry(settings, width, height);
       world.style.setProperty('--scrim-angle', `${geometry.angle}deg`);
       world.style.setProperty('--scrim-distance', `${geometry.distance}px`);
       world.style.setProperty('--scrim-opacity', DEFAULT_GRADIENT.opacity);

@@ -3,15 +3,39 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="Spot aircraft, identify them, and build your personal Planeroll collection.">
-    <title>Planeroll · Build Your Aircraft Collection</title>
+    <meta name="description" content="You spot. We identify. A planespotting app for casual spotters and avgeeks alike. Discover aircraft and build your collection.">
+    <title>Planeroll — Build your aircraft collection.</title>
+    <link rel="canonical" href="https://planeroll.app/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Planeroll">
+    <meta property="og:url" content="https://planeroll.app/">
+    <meta property="og:title" content="Planeroll — Build your aircraft collection.">
+    <meta property="og:description" content="You spot. We identify. A planespotting app for casual spotters and avgeeks alike. Discover aircraft and build your collection.">
+    <meta property="og:image" content="https://planeroll.app/assets/previews/main.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Planeroll app showing a Cathay Pacific Airbus A350 aircraft card.">
+    <meta property="og:image" content="https://planeroll.app/assets/previews/apple.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="900">
+    <meta property="og:image:height" content="473">
+    <meta property="og:image:alt" content="Planeroll app showing a Cathay Pacific Airbus A350 aircraft card.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@planeroll">
+    <meta name="twitter:title" content="Planeroll — Build your aircraft collection.">
+    <meta name="twitter:description" content="You spot. We identify. A planespotting app for casual spotters and avgeeks alike. Discover aircraft and build your collection.">
+    <meta name="twitter:image" content="https://planeroll.app/assets/previews/x.png">
+    <meta name="twitter:image:alt" content="Planeroll app showing a Cathay Pacific Airbus A350 aircraft card.">
+    <link rel="apple-touch-icon" sizes="512x512" href="/assets/previews/square-brand.png">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="assets/site-footer.css?v=14">
-    <link rel="stylesheet" href="prototype/prototype.css?v=59">
-    <link rel="stylesheet" href="prototype/planeroll-camera.css?v=13">
+    <link rel="stylesheet" href="assets/site-footer.css?v=21">
+    <link rel="stylesheet" href="prototype/prototype.css?v=69">
+    <link rel="stylesheet" href="prototype/planeroll-camera.css?v=14">
     <link rel="stylesheet" href="prototype/planespot.css?v=11">
-    <script type="module" src="/assets/site-footer.js?v=1"></script>
-    <script type="module" src="prototype/prototype.js?v=37"></script>
+    <script src="/assets/platform.js?v=1"></script>
+    <script type="module" src="/assets/site-footer.js?v=3"></script>
+    <script type="module" src="prototype/prototype.js?v=50"></script>
   </head>
   <body>
     <main class="scroll-story" id="scroll-story" aria-label="Scroll to photograph an aircraft and reveal its Planeroll spot">
@@ -53,6 +77,10 @@
               </div>
               <canvas class="captured-photo" id="captured-photo"></canvas>
             </div>
+            <div class="collection-home" id="collection-home" aria-hidden="true">
+              <img id="collection-screenshot" src="prototype/collection-home.png?v=2" width="1206" height="2622" alt="Planeroll collection of 37 aircraft" draggable="false">
+              <div class="collection-artwork"><img src="prototype/collection-home.png?v=2" width="1206" height="2622" alt="" draggable="false"></div>
+            </div>
             <div class="spot-app" id="spot-app" aria-hidden="true">
               <img class="spot-screenshot" id="spot-screenshot" src="prototype/planespot-a350-900-operator.png?v=2" width="1206" height="2622" alt="Planeroll planespot: Delta Air Lines Airbus A350-900 at Aster International Airport, N350PR." draggable="false">
               <img class="spot-screenshot spot-blank-screenshot" id="spot-blank-screenshot" src="prototype/planespot-a350-900-blank.png?v=2" width="1206" height="2622" alt="" draggable="false">
@@ -77,6 +105,16 @@
                 <div class="spot-detail-region spot-detail-reveal" data-field="range" style="--detail-x:350; --detail-y:2281; --detail-width:253; --detail-height:63; --detail-delay:630ms"></div>
                 <div class="spot-detail-region spot-detail-reveal" data-field="weight" style="--detail-x:920; --detail-y:2281; --detail-width:286; --detail-height:63; --detail-delay:630ms"></div>
               </div>
+            </div>
+            <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+              <clipPath id="collection-button-circles" clipPathUnits="objectBoundingBox">
+                <ellipse cx=".3364" cy=".9443" rx=".072" ry=".0331" />
+                <ellipse cx=".5" cy=".9443" rx=".072" ry=".0331" />
+                <ellipse cx=".6645" cy=".9443" rx=".072" ry=".0331" />
+              </clipPath>
+            </defs></svg>
+            <div class="collection-navigation" id="collection-navigation" aria-hidden="true">
+              <img src="prototype/collection-navigation.png" width="1206" height="2622" alt="" draggable="false">
             </div>
             <div class="capture-shutter" id="capture-shutter">
               <div class="shutter-blade shutter-blade-top" id="shutter-blade-top"></div>

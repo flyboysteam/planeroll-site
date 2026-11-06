@@ -50,9 +50,10 @@ for (const [key, slug, title] of [['privacy', 'privacy-policy', 'Privacy Policy'
     <meta name="description" content="Planeroll ${title}.">
     <title>${title} · Planeroll</title>
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/assets/site-footer.css?v=14">
+    <link rel="stylesheet" href="/assets/site-footer.css?v=21">
     <link rel="stylesheet" href="/legal/legal.css?v=4">
-    <script type="module" src="/assets/site-footer.js?v=1"></script>
+    <script src="/assets/platform.js?v=1"></script>
+    <script type="module" src="/assets/site-footer.js?v=3"></script>
     <script type="module" src="/legal/legal.js?v=1"></script>
   </head>
   <body>

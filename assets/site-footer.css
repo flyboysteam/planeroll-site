@@ -1,4 +1,6 @@
 /* Preserve the footer wordmark's nominal height independently of the device. */
+html[data-platform="windows"], html[data-platform="windows"] body,
+html[data-platform="windows"] .status-leading time { font-family: Arial, sans-serif; }
 .site-footer {
   position: fixed; inset: auto 0 0; z-index: 40;
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
@@ -35,37 +37,54 @@
   white-space: nowrap; transform: rotate(7deg);
 }
 @media (max-width: 1200px) {
+  :root { --compact-logo-height: 44px; }
   .site-footer { flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px; }
   .site-footer-app-store { position: relative; left: auto; top: auto; transform: none; align-self: center; margin: 12px 0; }
   .site-footer-links { width: 100%; flex-wrap: wrap; }
   .site-footer-links a { font-size: 12px; }
 }
 .site-footer-toggle { display: none; }
+.mobile-menu { display: none; }
 @media (max-width: 1200px) {
   .site-footer[data-menu-ready] {
     flex-direction: row; align-items: center; gap: 12px;
     padding: 18px max(24px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
   }
-  .site-footer[data-menu-ready] .site-footer-logo { height: 32px; }
+  .site-footer[data-menu-ready] .site-footer-logo { height: var(--compact-logo-height); }
   .site-footer[data-menu-ready] .site-footer-app-store { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; }
   .site-footer[data-menu-ready] .app-store-badge { height: 40px; }
-  .site-footer[data-menu-ready] .app-store-coming { font-size: 8px; line-height: 12px; right: -6px; padding: 2px 4px; }
-  .site-footer-toggle { display: grid; place-content: center; gap: 6px; width: 44px; height: 44px; margin-left: auto; border: 0; border-radius: 10px; background: rgb(255 255 255 / .06); color: #fff; cursor: pointer; }
-  .site-footer-toggle span { display: block; width: 20px; height: 2px; border-radius: 2px; background: currentColor; transition: transform 180ms ease; }
+  .site-footer[data-menu-ready] .app-store-coming { font-size: 10px; line-height: 14px; right: -6px; padding: 2px 4px; }
+  .site-footer-toggle { display: grid; place-content: center; gap: 6px; width: 44px; height: 44px; margin-left: auto; border: 0; border-radius: 10px; background: transparent; color: #fff; cursor: pointer; }
+  .site-footer-toggle span { display: block; width: 20px; height: 2px; border-radius: 2px; background: currentColor; box-shadow: -2px 0 0 rgb(239 67 64 / .35), 2px 0 0 rgb(32 188 117 / .35); transition: transform 180ms ease; }
   .site-footer-toggle[aria-expanded="true"] span:first-child { transform: translateY(4px) rotate(45deg); }
   .site-footer-toggle[aria-expanded="true"] span:last-child { transform: translateY(-4px) rotate(-45deg); }
   .site-footer-toggle:focus-visible { outline: 2px solid #FFDE0A; outline-offset: 3px; }
-  .site-footer[data-menu-ready] .site-footer-links { position: absolute; left: 0; bottom: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 16px 24px; background: rgb(0 0 0 / .96); border-top: 1px solid rgb(255 255 255 / .1); max-height: 65svh; overflow-y: auto; }
-  .site-footer[data-menu-ready] .site-footer-links[hidden] { display: none; }
-  .site-footer[data-menu-ready] .site-footer-links a { justify-content: flex-start; min-height: 48px; font-size: 15px; }
+  html.mobile-menu-open { overflow: hidden; }
+  .site-footer[data-menu-ready] { z-index: 101; }
+  html.mobile-menu-open .site-footer::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; background: rgb(0 0 0 / .70); pointer-events: none; }
+  .mobile-menu { display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); position: fixed; inset: 0 0 calc(var(--menu-footer-height, 80px) + 1px); z-index: 100; background: rgb(0 0 0 / .85); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: #fff; overflow-y: auto; overscroll-behavior: contain; transform: translateX(100%); visibility: hidden; transition: transform 320ms cubic-bezier(.22, 1, .36, 1), visibility 0s 320ms; }
+  .mobile-menu[data-open="true"] { transform: translateX(0); visibility: visible; transition-delay: 0s; }
+  .mobile-menu-header { flex: none; height: 80px; margin-top: auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+  .mobile-menu-header img { width: auto; height: var(--compact-logo-height); }
+  .mobile-menu .site-footer-links { flex: none; margin-bottom: auto; display: flex; flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 0; width: 100%; }
+  .mobile-menu .site-footer-links a { display: flex; justify-content: flex-start; width: 100%; height: 64px; min-height: 64px; padding: 0 max(24px, env(safe-area-inset-left)); font-size: 30px; font-weight: 300; color: #fff; }
+  .mobile-menu .site-footer-links a:hover { background: rgb(255 255 255 / .04); }
+  .mobile-menu .site-footer-links a:focus-visible { outline-offset: -3px; }
+  .mobile-menu .site-footer-social svg { width: 26px; height: 26px; }
 }
 @media (max-width: 600px) {
+  :root { --compact-logo-height: 34px; }
   .site-footer[data-menu-ready] { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); gap: 8px; }
-  .site-footer[data-menu-ready] .site-footer-logo { height: 24px; }
+  .site-footer[data-menu-ready] .site-footer-logo { height: var(--compact-logo-height); }
   .site-footer[data-menu-ready] .app-store-badge { height: 36px; }
   .site-footer[data-menu-ready] .site-footer-app-store { position: relative; left: auto; top: auto; transform: none; margin-left: auto; }
   .site-footer-toggle { margin-left: 8px; flex: none; }
 }
-@media (prefers-reduced-motion: reduce) { .site-footer-toggle span { transition: none; } }
+@media (max-width: 360px) {
+  .site-footer[data-menu-ready] { gap: 4px; }
+  .site-footer[data-menu-ready] .app-store-badge { height: 30px; }
+  .site-footer-toggle { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .site-footer-toggle span, .mobile-menu { transition: none; } }
 .site-footer-brand { display: block; flex: none; }
 .site-footer-brand:focus-visible { outline: 2px solid #FFDE0A; outline-offset: 6px; border-radius: 2px; }
