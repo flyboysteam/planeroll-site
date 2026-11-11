@@ -49,7 +49,7 @@ for (const [key, slug, title] of [['privacy', 'privacy-policy', 'Privacy Policy'
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Planeroll ${title}.">
     <title>${title} · Planeroll</title>
-    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/assets/favicon.svg?v=2" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/site-footer.css?v=21">
     <link rel="stylesheet" href="/legal/legal.css?v=4">
     <script src="/assets/platform.js?v=1"></script>
