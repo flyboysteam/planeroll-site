@@ -55,7 +55,8 @@ ${legalMetadata(slug, title)}
     <link rel="icon" href="/assets/favicon.svg?v=2" type="image/svg+xml">
     <link rel="stylesheet" href="${footerCss}">
     <link rel="stylesheet" href="/legal/legal.css?v=5">
-    <script src="/assets/platform.js?v=1"></script>
+    <script>document.documentElement.classList.add('js');</script>
+    <script defer src="/assets/platform.js?v=1"></script>
     <script type="module" src="${footerScript}"></script>
     <script type="module" src="/legal/legal.js?v=1"></script>
   </head>

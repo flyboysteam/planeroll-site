@@ -31,13 +31,14 @@
     <link rel="apple-touch-icon" sizes="512x512" href="/assets/previews/square-brand.png">
     <link rel="icon" href="assets/favicon.svg?v=2" type="image/svg+xml">
     <link rel="preload" as="image" href="/prototype/airport-terminal-v2.webp" type="image/webp" fetchpriority="high">
-    <link rel="stylesheet" href="assets/site-footer.css?v=22">
-    <link rel="stylesheet" href="prototype/prototype.css?v=76">
+    <link rel="stylesheet" href="assets/site-footer.css?v=23">
+    <link rel="stylesheet" href="prototype/prototype.css?v=77">
     <link rel="stylesheet" href="prototype/planeroll-camera.css?v=15">
-    <link rel="stylesheet" href="prototype/planespot.css?v=11">
-    <script src="/assets/platform.js?v=1"></script>
-    <script type="module" src="/assets/site-footer.js?v=4"></script>
-    <script type="module" src="prototype/prototype.js?v=59"></script>
+    <link rel="stylesheet" href="prototype/planespot.css?v=12">
+    <script>document.documentElement.classList.add('js');</script>
+    <script defer src="/assets/platform.js?v=1"></script>
+    <script type="module" src="/assets/site-footer.js?v=5"></script>
+    <script type="module" src="prototype/prototype.js?v=60"></script>
     <link rel="stylesheet" href="/assets/product-info.css?v=1">
     <script type="application/ld+json">
 {
@@ -114,7 +115,7 @@
               <div class="camera-window" id="camera-window">
                 <div class="viewfinder-grid"></div>
               </div>
-              <div class="camera-header"><img class="camera-hat" src="assets/hat.png" width="988" height="724" alt="" draggable="false"></div>
+              <div class="camera-header"><img class="camera-hat" src="assets/hat.webp" width="494" height="362" decoding="async" alt="" draggable="false"></div>
               <div class="camera-footer"></div>
               <div class="camera-controls">
                 <div class="shutter" id="shutter"><div></div></div>
@@ -132,14 +133,14 @@
               <canvas class="captured-photo" id="captured-photo"></canvas>
             </div>
             <div class="collection-home" id="collection-home" aria-hidden="true">
-              <img id="collection-screenshot" src="prototype/collection-home.png?v=2" width="1206" height="2622" alt="Planeroll collection of 37 aircraft" draggable="false">
-              <div class="collection-artwork"><img src="prototype/collection-home.png?v=2" width="1206" height="2622" alt="" draggable="false"></div>
+              <img id="collection-screenshot" data-src="prototype/collection-home-804.webp" data-srcset="prototype/collection-home-804.webp 804w, prototype/collection-home-1206.webp 1206w" sizes="(max-width: 600px) calc(100vw - 48px), 402px" decoding="async" width="1206" height="2622" alt="Planeroll collection of 37 aircraft" draggable="false">
+              <div class="collection-artwork"><img data-src="prototype/collection-home-804.webp" data-srcset="prototype/collection-home-804.webp 804w, prototype/collection-home-1206.webp 1206w" sizes="(max-width: 600px) calc(100vw - 48px), 402px" decoding="async" width="1206" height="2622" alt="" draggable="false"></div>
             </div>
             <div class="spot-app" id="spot-app" aria-hidden="true">
-              <img class="spot-screenshot" id="spot-screenshot" src="prototype/planespot-a350-900-operator.png?v=2" width="1206" height="2622" alt="Planeroll planespot: Delta Air Lines Airbus A350-900 at Aster International Airport, N350PR." draggable="false">
-              <img class="spot-screenshot spot-blank-screenshot" id="spot-blank-screenshot" src="prototype/planespot-a350-900-blank.png?v=2" width="1206" height="2622" alt="" draggable="false">
+              <img class="spot-screenshot" id="spot-screenshot" data-src="prototype/planespot-a350-900-operator-804.webp" data-srcset="prototype/planespot-a350-900-operator-804.webp 804w, prototype/planespot-a350-900-operator-1206.webp 1206w" sizes="(max-width: 600px) calc(100vw - 48px), 402px" decoding="async" width="1206" height="2622" alt="Planeroll planespot: Delta Air Lines Airbus A350-900 at Aster International Airport, N350PR." draggable="false">
+              <img class="spot-screenshot spot-blank-screenshot" id="spot-blank-screenshot" data-src="prototype/planespot-a350-900-blank-804.webp" data-srcset="prototype/planespot-a350-900-blank-804.webp 804w, prototype/planespot-a350-900-blank-1206.webp 1206w" sizes="(max-width: 600px) calc(100vw - 48px), 402px" decoding="async" width="1206" height="2622" alt="" draggable="false">
               <div class="spot-scanline"><span class="scan-outer"></span><span class="scan-inner"></span><span class="scan-core"></span></div>
-              <img class="spot-screenshot spot-details-background" id="spot-details-background" src="prototype/planespot-a350-900-no-text.png?v=2" width="1206" height="2622" alt="" draggable="false">
+              <img class="spot-screenshot spot-details-background" id="spot-details-background" data-src="prototype/planespot-a350-900-no-text-804.webp" data-srcset="prototype/planespot-a350-900-no-text-804.webp 804w, prototype/planespot-a350-900-no-text-1206.webp 1206w" sizes="(max-width: 600px) calc(100vw - 48px), 402px" decoding="async" width="1206" height="2622" alt="" draggable="false">
               <!-- Every region samples the same aligned capture. Clip boundaries move;
                    the screenshot texture never scales or slides during the reveal. -->
               <div class="spot-details">
@@ -168,7 +169,7 @@
               </clipPath>
             </defs></svg>
             <div class="collection-navigation" id="collection-navigation" aria-hidden="true">
-              <img src="prototype/collection-navigation.png" width="1206" height="2622" alt="" draggable="false">
+              <img data-src="prototype/collection-navigation-804.webp" data-srcset="prototype/collection-navigation-804.webp 804w, prototype/collection-navigation-1206.webp 1206w" sizes="(max-width: 600px) calc(100vw - 48px), 402px" decoding="async" width="1206" height="2622" alt="" draggable="false">
             </div>
             <section class="final-screen" id="final-screen" aria-label="About Planeroll">
               <img class="final-screen-symbol" id="final-screen-symbol" src="/assets/planeroll-symbol-with-effects.svg" width="826" height="702" alt="" draggable="false">
@@ -216,7 +217,7 @@
     </section>
     </main>
     <footer class="site-footer" id="site-footer">
-      <a class="site-footer-brand" href="/" aria-label="Planeroll home"><img class="site-footer-logo" src="/assets/planeroll-logo-with-effects.svg" width="1482" height="351" alt="Planeroll" draggable="false"></a>
+      <a class="site-footer-brand" href="/" aria-label="Planeroll home"><img class="site-footer-logo" src="/assets/planeroll-logo-with-effects.svg" width="1482" height="351" alt="Planeroll" fetchpriority="high" draggable="false"></a>
       <div class="site-footer-app-store">
         <img class="app-store-badge" src="/assets/app-store-badge-white.svg" width="120" height="40" alt="Download on the App Store" draggable="false">
         <span class="app-store-coming">EARLY 2027</span>

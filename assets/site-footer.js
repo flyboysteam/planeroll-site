@@ -31,7 +31,7 @@ if (footer && nav) {
   panel.className = 'mobile-menu';
   panel.setAttribute('role', 'region');
   panel.setAttribute('aria-label', 'Navigation');
-  panel.innerHTML = '<div class="mobile-menu-header"><img src="/assets/planeroll-symbol-with-effects.svg" alt="Planeroll"></div>';
+  panel.innerHTML = '<div class="mobile-menu-header"><img src="/assets/planeroll-symbol-with-effects.svg" width="826" height="702" alt="Planeroll"></div>';
   document.body.append(panel);
   const measureFooter = () => panel.style.setProperty('--menu-footer-height', `${footer.getBoundingClientRect().height}px`);
   const footerObserver = new ResizeObserver(measureFooter);

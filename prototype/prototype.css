@@ -6,10 +6,10 @@ body { overflow-x: clip; }
 .stage { position: sticky; top: 0; height: 100vh; height: 100dvh; height: var(--site-viewport-height, 100dvh); overflow: hidden; isolation: isolate; background: #000; }
 /* Start the one-time reveal after the first painted scene, so loading assets
    cannot use up the hold or expose a bright frame before the scrim appears. */
-.stage::after { content: ''; position: absolute; inset: 0; z-index: 30; background: #000; opacity: .75; pointer-events: none; }
-.stage[data-ready="true"]::after { animation: scene-reveal var(--scrim-reveal-duration, 1200ms) cubic-bezier(.22, 1, .36, 1) var(--scrim-reveal-delay, 500ms) both; }
+.stage::after { content: ''; position: absolute; inset: 0; z-index: 0; background: #000; opacity: .75; pointer-events: none; }
+.stage[data-background-ready="true"]::after { animation: scene-reveal var(--scrim-reveal-duration, 1200ms) cubic-bezier(.22, 1, .36, 1) var(--scrim-reveal-delay, 500ms) both; }
 @keyframes scene-reveal { from { opacity: .75; } to { opacity: 0; visibility: hidden; } }
-@media (prefers-reduced-motion: reduce) { .stage[data-ready="true"]::after { animation-duration: 1ms; animation-delay: 0ms; } }
+@media (prefers-reduced-motion: reduce) { .stage[data-background-ready="true"]::after { animation-duration: 1ms; animation-delay: 0ms; } }
 .world { position: absolute; inset: 0; will-change: opacity; }
 /* Browser chrome changes the visible stage, not the scenery's crop. Keep a
    full-height backing surface and let the stage clip it as toolbars move. */
@@ -22,7 +22,7 @@ body { overflow-x: clip; }
   --hero-font-size: clamp(28px, 6vw, 96px);
   position: absolute; top: 96px; left: 96px; z-index: 1;
   display: flex; flex-direction: column; gap: 12px; width: 50%; max-width: 50vw;
-  text-align: left; opacity: 0; pointer-events: none; will-change: opacity;
+  text-align: left; opacity: 1; pointer-events: none; will-change: opacity;
 }
 .intro-headline {
   margin: 0; color: #FFDE0A; font-size: var(--hero-font-size);
@@ -48,7 +48,7 @@ body { overflow-x: clip; }
 .scroll-cue { display: block; width: 100%; height: 100%; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .scroll-cue > rect, .scroll-cue-wheel { stroke: rgb(0 0 0 / .20); }
 .scroll-cue-wheel { animation: scroll-cue-wheel 2800ms ease-in-out infinite; }
-.scroll-cue-arrow { animation: scroll-cue-arrow 2800ms ease-in-out infinite; }
+.scroll-cue-arrow { transform-origin: 20px 52px; animation: scroll-cue-arrow 2800ms ease-in-out infinite; }
 /* Fade the wheel in for 112ms, move it with the arrow reveal for 784ms,
    then fade it out for 112ms before arrow retraction. No wheel-only cycle.
    Stroke padding keeps the rounded tip intact. */
@@ -60,17 +60,14 @@ body { overflow-x: clip; }
   36.01% { transform: translateY(0); opacity: 0; }
 }
 @keyframes scroll-cue-arrow {
-  0%, 4% { clip-path: inset(-2px -2px calc(100% + 2px) -2px) fill-box; }
-  32%, 36% { clip-path: inset(-2px) fill-box; }
-  58%, 100% { clip-path: inset(calc(100% + 2px) -2px -2px -2px) fill-box; }
+  0%, 4% { transform: translateY(-8px) scaleY(.1); opacity: 0; }
+  32%, 36% { transform: translateY(0) scaleY(1); opacity: 1; }
+  58%, 100% { transform: translateY(12px) scaleY(1); opacity: 0; }
 }
-.intro-headline, .intro-tagline, .intro-scroll { opacity: 0; transform: translateY(-16px); }
-.stage[data-ready="true"] .intro-headline,
-.stage[data-ready="true"] .intro-tagline,
+.intro-scroll { opacity: 0; transform: translateY(-16px); }
 .stage[data-ready="true"] .intro-scroll {
   animation: intro-text-reveal var(--intro-text-duration, 900ms) cubic-bezier(.22, 1, .36, 1) var(--intro-delay, 1950ms) both;
 }
-.stage[data-ready="true"] .intro-tagline { animation-delay: calc(var(--intro-delay, 1950ms) + var(--intro-stagger, 250ms)); }
 .stage[data-ready="true"] .intro-scroll { animation-delay: var(--scroll-cue-delay, 4250ms); }
 @keyframes intro-text-reveal { from { opacity: 0; transform: translateY(-16px); } to { opacity: var(--intro-opacity, 1); transform: translateY(0); } }
 .stage[data-intro="complete"] .intro-headline,

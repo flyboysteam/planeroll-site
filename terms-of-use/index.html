@@ -23,10 +23,11 @@
     <meta name="twitter:image" content="https://planeroll.app/assets/previews/square-brand.png">
     <meta name="twitter:image:alt" content="Planeroll logo on a black background">
     <link rel="icon" href="/assets/favicon.svg?v=2" type="image/svg+xml">
-    <link rel="stylesheet" href="/assets/site-footer.css?v=22">
+    <link rel="stylesheet" href="/assets/site-footer.css?v=23">
     <link rel="stylesheet" href="/legal/legal.css?v=5">
-    <script src="/assets/platform.js?v=1"></script>
-    <script type="module" src="/assets/site-footer.js?v=4"></script>
+    <script>document.documentElement.classList.add('js');</script>
+    <script defer src="/assets/platform.js?v=1"></script>
+    <script type="module" src="/assets/site-footer.js?v=5"></script>
     <script type="module" src="/legal/legal.js?v=1"></script>
   </head>
   <body>
@@ -262,7 +263,7 @@
       </article>
     </main>
     <footer class="site-footer" id="site-footer">
-      <a class="site-footer-brand" href="/" aria-label="Planeroll home"><img class="site-footer-logo" src="/assets/planeroll-logo-with-effects.svg" width="1482" height="351" alt="Planeroll" draggable="false"></a>
+      <a class="site-footer-brand" href="/" aria-label="Planeroll home"><img class="site-footer-logo" src="/assets/planeroll-logo-with-effects.svg" width="1482" height="351" alt="Planeroll" fetchpriority="high" draggable="false"></a>
       <div class="site-footer-app-store">
         <img class="app-store-badge" src="/assets/app-store-badge-white.svg" width="120" height="40" alt="Download on the App Store" draggable="false">
         <span class="app-store-coming">EARLY 2027</span>

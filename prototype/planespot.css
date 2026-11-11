@@ -21,7 +21,7 @@
   --detail-bottom: calc(100% - (var(--detail-y) + var(--detail-height)) * 100% / 2622);
   --detail-left: calc(var(--detail-x) * 100% / 1206);
   position: absolute; inset: 0;
-  background: url('./planespot-a350-900-operator.png?v=2') center / 100% 100% no-repeat;
+  background: var(--spot-detail-image, none) center / 100% 100% no-repeat;
   clip-path: inset(var(--detail-top) var(--detail-right) var(--detail-bottom) var(--detail-left));
 }
 .spot-detail-reveal {

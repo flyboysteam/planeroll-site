@@ -1,6 +1,7 @@
 import { mountStatusClock } from './status-clock.js';
 import { mountGradient } from './gradient.js?v=4';
 import { createScrollMotion, motionKeyframes } from './scroll-motion.js?v=1';
+import { createStoryImageLoader } from './story-images.js';
 
 // After the one-time entrance, positions and blends follow scroll progress.
 // The return journey crossfades to the camera instead of reversing the shutter.
@@ -33,7 +34,7 @@ const scene = {
 };
 const cameraScene = {
   extension: new Image(),
-  source: './prototype/airport-camera-ground.jpg',
+  source: './prototype/airport-camera-ground.webp',
   width: 3200,
   height: 4600,
   canvas: document.createElement('canvas'),
@@ -51,7 +52,6 @@ const SPLASH_FLICKER_PHASE_HOLD_MS = 250;
 const SPLASH_FLICKER_TOTAL_MS = SPLASH_FLICKER_PHASE_HOLD_MS + 250 + SPLASH_FLICKER_STEP_MS * 5;
 const fleetHome = $('collection-home');
 const collectionNavigation = $('collection-navigation');
-const fleetScreenshot = $('collection-screenshot');
 const PHONE_VERTICAL_MARGIN_PX = 32;
 const PHONE_HORIZONTAL_MARGIN_PX = 24;
 const PHONE_PREFERRED_MIN_HEIGHT_PX = 440;
@@ -103,8 +103,25 @@ const worldContext = elements.airfield.getContext('2d');
 const cameraContext = elements.viewfinder.getContext('2d');
 const photoContext = elements['captured-photo'].getContext('2d');
 const planespotScreenshot = $('spot-screenshot');
-const planespotBlankScreenshot = $('spot-blank-screenshot');
-const planespotDetailsBackground = $('spot-details-background');
+const storyImages = createStoryImageLoader([...document.querySelectorAll('img[data-src]')]);
+let storyImagesStarted = false, storyImagesReady = false;
+function loadStoryImages() {
+  if (storyImagesStarted) return;
+  storyImagesStarted = true;
+  elements.stage.dataset.storyImages = 'loading';
+  storyImages.load().then(() => {
+    if (disposed) return;
+    // Use the browser-selected responsive source for every clipped text region.
+    elements['spot-app'].style.setProperty('--spot-detail-image', `url("${planespotScreenshot.currentSrc}")`);
+    storyImagesReady = true;
+    elements.stage.dataset.storyImages = 'ready';
+    requestRender();
+  }).catch(() => {
+    if (disposed) return;
+    elements.stage.dataset.storyImages = 'error';
+    $('scene-description').textContent = 'The aircraft preview could not load. Refresh to try again.';
+  });
+}
 const planespotArtworkHeightPercent = parseFloat(getComputedStyle(elements['spot-app']).getPropertyValue('--spot-artwork-height'));
 const phoneScreen = elements.phone.querySelector('.phone-screen');
 const scrollMotion = createScrollMotion(elements.phone, elements.viewfinder);
@@ -362,6 +379,7 @@ function render(now) {
   frame = 0;
   if (disposed || !loaded || !width || !height) return;
   const scrollPosition = Math.max(0, scrollY - storyTop);
+  if (scrollPosition > 0) loadStoryImages();
   if (!scrollCueDismissed && scrollPosition > 0) {
     scrollCueDismissed = true;
     elements.stage.dataset.scrollCueDismissed = 'true';
@@ -422,7 +440,7 @@ function render(now) {
   const photoReveal = !snapped ? 0 : returningToCamera ? smooth(shutterProgress) : 1;
   phoneScreen.dataset.capture = snapped ? 'photo' : 'camera';
   const captureFinished = returningToCamera || captureElapsed >= 540;
-  const spotReveal = captureFinished ? smooth(range(p, timeline.photoToSpot)) : 0;
+  const spotReveal = storyImagesReady && captureFinished ? smooth(range(p, timeline.photoToSpot)) : 0;
   // Start the loading treatment after the blades reopen. Stop its animations
   // while hidden, and let the existing screen crossfades reveal/hide it.
   elements['photo-review'].dataset.analyzing = photoReveal > 0 && captureFinished && spotReveal < 1 ? 'true' : 'false';
@@ -442,7 +460,7 @@ function render(now) {
   // app's vertical reveal directly from scroll pixels. Returning restores the
   // blank below the beam, with no timed playback, easing, or direction latch.
   const liveryStart = sceneDistance + CENTER_HOLD_SCROLL_PX;
-  const liveryProgress = snapped && captureFinished ? clamp((scrollPosition - liveryStart) / liveryScanScrollPx) : 0;
+  const liveryProgress = storyImagesReady && snapped && captureFinished ? clamp((scrollPosition - liveryStart) / liveryScanScrollPx) : 0;
   // Latch for this page load: the details keep revealing even if scrolling
   // stops or reverses, and returning to the blank aircraft never covers them.
   if (liveryProgress > 0 && elements['spot-app'].dataset.detailsRevealed !== 'true') {
@@ -455,7 +473,7 @@ function render(now) {
   // App step 3 → 4: 1100ms zoom to .22, with a quicker 650ms UI fade.
   // Map those proportions to scroll distance so the complete reveal reverses.
   const fleetStart = liveryStart + liveryScanScrollPx + LIVERY_END_HOLD_SCROLL_PX;
-  const fleetProgress = snapped && captureFinished ? clamp((scrollPosition - fleetStart) / FLEET_ZOOM_SCROLL_PX) : 0;
+  const fleetProgress = storyImagesReady && snapped && captureFinished ? clamp((scrollPosition - fleetStart) / FLEET_ZOOM_SCROLL_PX) : 0;
   const fleetZoom = captureEase(fleetProgress);
   const fleetFade = captureEase(clamp(fleetProgress * 1100 / 650));
   fleetHome.style.opacity = fleetFade;
@@ -469,7 +487,7 @@ function render(now) {
   // Scrolling only starts or resets this closing sequence. Once triggered, its
   // fade, flicker, lift, and typewriter play on a single elapsed-time clock.
   const finalScreenTrigger = fleetStart + FLEET_ZOOM_SCROLL_PX + FLEET_END_HOLD_SCROLL_PX;
-  const finalScreenTriggered = snapped && captureFinished && scrollPosition >= finalScreenTrigger;
+  const finalScreenTriggered = storyImagesReady && snapped && captureFinished && scrollPosition >= finalScreenTrigger;
   if (finalScreenTriggered && finalScreenStartedAt === null) finalScreenStartedAt = now;
   if (!finalScreenTriggered && finalScreenStartedAt !== null) finalScreenStartedAt = null;
   const finalElapsed = finalScreenStartedAt === null ? 0 : now - finalScreenStartedAt;
@@ -511,9 +529,16 @@ window.addEventListener('resize', measure, { passive: true });
 window.addEventListener('pageshow', measure);
 function onMotionPreferenceChange() { syncScrollMotion(); requestRender(); }
 reducedMotion.addEventListener('change', onMotionPreferenceChange);
+scene.image.fetchPriority = 'high';
 scene.image.src = scene.source;
 cameraScene.extension.src = cameraScene.source;
-Promise.all([document.fonts.ready, scene.image.decode(), cameraScene.extension.decode(), planespotScreenshot.decode(), planespotBlankScreenshot.decode(), planespotDetailsBackground.decode(), fleetScreenshot.decode()]).then(() => {
+const sceneReady = scene.image.decode().then(() => {
+  if (disposed) return;
+  measure();
+  paintWorld();
+  elements.stage.dataset.backgroundReady = 'true';
+});
+Promise.all([sceneReady, cameraScene.extension.decode()]).then(() => {
   if (disposed) return;
   buildCameraScene();
   loaded = true;
