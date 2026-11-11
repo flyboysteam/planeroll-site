@@ -23,7 +23,7 @@ const scene = {
   image: new Image(),
   // The supplied terminal photograph, aimed at the central Delta aircraft.
   // The background, live view, and captured photo share it.
-  source: './prototype/airport-terminal-v2.png',
+  source: './prototype/airport-terminal-v2.webp',
   // Keep the camera foreground's coordinate scale and the new image's aspect ratio.
   width: 3200,
   height: 3200 * 1632 / 2592,

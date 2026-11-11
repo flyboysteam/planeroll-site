@@ -60,7 +60,8 @@ The shared status bar follows [Apple’s iOS 27 visual reference](https://www.ap
 - `prototype/planeroll-add-plane.svg`: retained glyph from the earlier recreated screen; no longer loaded.
 - `prototype/planeroll-camera.css`: app-derived camera chrome and scaled Planeroll tokens.
 - `assets/hat.png`: unmodified supplied 988×724 transparent hat image displayed in the camera header.
-- `prototype/airport-terminal-v2.png`: unmodified 2592×1632 copy of the replacement image supplied from the Desktop. The JavaScript scene settings retain the existing 3200-unit camera coordinate scale while preserving the replacement image’s aspect ratio. The background, camera, and captured photo share this image.
+- `prototype/airport-terminal-v2.webp`: optimized 1944×1224 web delivery image (WebP quality 85, method 6; Lanczos resize from the original). It is 255,098 bytes versus the original PNG’s 6,476,235 bytes, a 96.1% reduction. The homepage preloads it at high priority, and the background, live camera, captured photo, legal backgrounds, and scroll-hint demo all use it. The 3200-unit scene coordinates and 27:17 aspect ratio stay unchanged.
+- `prototype/airport-terminal-v2.png`: unmodified 2592×1632 source retained for future exports; no longer requested by the site.
 - `prototype/airport-terminal.jpg`: earlier background, retained as the source reference for the generated foreground extension; no longer loaded directly.
 - `prototype/airport-camera-ground.jpg`: additional foreground for the live camera, generated with the built-in image generation tool. The input, exact prompt, and source-output path are recorded in `prototype/airport-camera-ground.prompt.txt`. The original photograph is overlaid in the renderer; generated aircraft pixels are not used.
 - `index.html`: camera, photo-review, and spot-screen markup. All aircraft, registration, and location information is demonstration data.

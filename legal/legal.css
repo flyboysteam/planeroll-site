@@ -13,7 +13,7 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: url('/prototype/airport-terminal-v2.png') center / cover no-repeat;
+  background: url('/prototype/airport-terminal-v2.webp') center / cover no-repeat;
   opacity: .11;
   pointer-events: none;
 }
