@@ -543,7 +543,13 @@ Promise.all([sceneReady, cameraScene.extension.decode()]).then(() => {
   buildCameraScene();
   loaded = true;
   measure();
-}).catch(() => { $('scene-description').textContent = 'Preview imagery could not load. Refresh to try again.'; });
+}).catch(() => {
+  if (disposed) return;
+  // Keep the message readable even when the imagery cannot start the entrance.
+  elements.stage.dataset.intro = 'complete';
+  elements.stage.dataset.loadError = 'true';
+  $('scene-description').textContent = 'Preview imagery could not load. Refresh to try again.';
+});
 window.addEventListener('pagehide', event => {
   if (event.persisted) return;
   disposed = true;

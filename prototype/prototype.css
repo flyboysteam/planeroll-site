@@ -64,20 +64,28 @@ body { overflow-x: clip; }
   32%, 36% { transform: translateY(0) scaleY(1); opacity: 1; }
   58%, 100% { transform: translateY(12px) scaleY(1); opacity: 0; }
 }
-.intro-scroll { opacity: 0; transform: translateY(-16px); }
+.intro-headline, .intro-tagline, .intro-about, .intro-scroll { opacity: 0; transform: translateY(-16px); }
+.stage[data-ready="true"] .intro-headline,
+.stage[data-ready="true"] .intro-tagline,
+.stage[data-ready="true"] .intro-about,
 .stage[data-ready="true"] .intro-scroll {
   animation: intro-text-reveal var(--intro-text-duration, 900ms) cubic-bezier(.22, 1, .36, 1) var(--intro-delay, 1950ms) both;
 }
+.stage[data-ready="true"] .intro-tagline,
+.stage[data-ready="true"] .intro-about { animation-delay: calc(var(--intro-delay, 1950ms) + var(--intro-stagger, 250ms)); }
 .stage[data-ready="true"] .intro-scroll { animation-delay: var(--scroll-cue-delay, 4250ms); }
 @keyframes intro-text-reveal { from { opacity: 0; transform: translateY(-16px); } to { opacity: var(--intro-opacity, 1); transform: translateY(0); } }
 .stage[data-intro="complete"] .intro-headline,
-.stage[data-intro="complete"] .intro-tagline { animation: none; opacity: var(--intro-opacity, 1); transform: none; }
+.stage[data-intro="complete"] .intro-tagline,
+.stage[data-intro="complete"] .intro-about { animation: none; opacity: var(--intro-opacity, 1); transform: none; }
+.stage[data-load-error="true"] .intro-tagline { color: #fff; }
 .stage[data-scroll-cue-dismissed="true"] .intro-copy .intro-scroll { animation: none; opacity: 0; transform: none; }
 .stage:not([data-ready="true"]) .phone { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .scroll-cue-wheel, .scroll-cue-arrow { animation: none; }
   .stage[data-ready="true"] .intro-headline,
   .stage[data-ready="true"] .intro-tagline,
+  .stage[data-ready="true"] .intro-about,
   .stage[data-ready="true"] .intro-scroll { animation: none; opacity: var(--intro-opacity, 1); transform: none; }
 }
 /* 402 × 874 CSS-pixel display: the supplied 1206 × 2622 capture at 3×.
