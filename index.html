@@ -76,11 +76,22 @@
   ]
 }
     </script>
+    <noscript>
+      <style>
+        .scroll-story { height: auto !important; }
+        .stage { position: relative; height: auto; padding: 48px 24px; }
+        .stage::after, .world, .phone, .intro-scroll { display: none; }
+        .intro-copy { position: static; width: 100%; max-width: 100%; opacity: 1; }
+        .intro-headline, .intro-tagline { opacity: 1; transform: none; }
+        .intro-tagline { color: #fff; }
+        .site-footer { position: relative; }
+      </style>
+    </noscript>
   </head>
   <body>
     <a class="skip-details" href="#about-planeroll">Skip to app details</a>
     <main>
-    <div class="scroll-story" id="scroll-story" aria-label="Scroll to photograph an aircraft and reveal its Planeroll spot">
+    <div class="scroll-story" id="scroll-story" role="region" aria-label="Scroll to photograph an aircraft and reveal its Planeroll spot">
       <div class="stage" id="stage" data-phase="ready">
         <div class="world" id="world" aria-hidden="true"><canvas id="airfield"></canvas></div>
         <div class="intro-copy" id="intro-copy">
@@ -220,16 +231,6 @@
         </a>
       </nav>
     </footer>
-    <noscript>
-      <style>
-        .scroll-story { height: auto !important; }
-        .stage { position: relative; height: auto; padding: 48px 24px; }
-        .stage::after, .world, .phone, .intro-scroll { display: none; }
-        .intro-copy { position: static; width: 100%; max-width: 100%; opacity: 1; }
-        .intro-headline, .intro-tagline { opacity: 1; transform: none; }
-        .intro-tagline { color: #fff; }
-        .site-footer { position: relative; }
-      </style>
-    </noscript>
+
   </body>
 </html>
