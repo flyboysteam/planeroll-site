@@ -52,7 +52,7 @@ for (const [key, slug, title] of [['privacy', 'privacy-policy', 'Privacy Policy'
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 ${legalMetadata(slug, title)}
-    <link rel="icon" href="/assets/favicon.svg?v=2" type="image/svg+xml">
+    <link rel="icon" href="/assets/favicon.svg?v=3" type="image/svg+xml">
     <link rel="stylesheet" href="${footerCss}">
     <link rel="stylesheet" href="/legal/legal.css?v=5">
     <script>document.documentElement.classList.add('js');</script>
