@@ -4,12 +4,15 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
+import { legalMetadata } from './page-metadata.mjs';
 
 const site = fileURLToPath(new URL('../', import.meta.url));
 const app = resolve(process.argv[2] ?? resolve(site, '../planeroll'));
 const { legalDocuments } = await import(pathToFileURL(resolve(app, 'constants/legalDocuments.ts')));
 const { parseLegalMarkdown, parseLegalMarkdownInline } = await import(pathToFileURL(resolve(app, 'lib/legalMarkdown.ts')));
 const home = await readFile(resolve(site, 'index.html'), 'utf8');
+const footerCss = '/' + home.match(/href="([^"]*assets\/site-footer\.css[^"]*)"/)[1].replace(/^\//, '');
+const footerScript = '/' + home.match(/src="([^"]*assets\/site-footer\.js[^"]*)"/)[1].replace(/^\//, '');
 const footer = home.match(/    <footer\b[\s\S]*?<\/footer>/)?.[0];
 if (!footer) throw new Error('The site footer could not be found.');
 
@@ -36,7 +39,8 @@ function blockMarkup(block) {
 function withoutDraftPlaceholders(markdown) {
   const note = /^\s*(?:-\s+)?(?:\*\*)?\[(?:(?:LEGAL REVIEW|IMPLEMENTATION GAP|VERIFY|OWNER):[^\]]*|WEBSITE EMAIL\/NEWSLETTER PROVIDERS)\](?:\*\*)?\s*$/;
   const missingDate = /^\s*\*\*Effective Date:\*\*\s*\[TO BE ADDED AT PUBLICATION\]\s*$/;
-  return markdown.split(/\r?\n/).filter(line => !note.test(line) && !missingDate.test(line)).join('\n');
+  const draftStatus = /^\s*\*\*Status:\*\*\s*Working Draft\s*[—–-]\s*Not for Publication\s*$/i;
+  return markdown.split(/\r?\n/).filter(line => !note.test(line) && !missingDate.test(line) && !draftStatus.test(line)).join('\n');
 }
 
 for (const [key, slug, title] of [['privacy', 'privacy-policy', 'Privacy Policy'], ['terms', 'terms-of-use', 'Terms of Use']]) {
@@ -47,13 +51,12 @@ for (const [key, slug, title] of [['privacy', 'privacy-policy', 'Privacy Policy'
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="Planeroll ${title}.">
-    <title>${title} · Planeroll</title>
+${legalMetadata(slug, title)}
     <link rel="icon" href="/assets/favicon.svg?v=2" type="image/svg+xml">
-    <link rel="stylesheet" href="/assets/site-footer.css?v=21">
+    <link rel="stylesheet" href="${footerCss}">
     <link rel="stylesheet" href="/legal/legal.css?v=5">
     <script src="/assets/platform.js?v=1"></script>
-    <script type="module" src="/assets/site-footer.js?v=3"></script>
+    <script type="module" src="${footerScript}"></script>
     <script type="module" src="/legal/legal.js?v=1"></script>
   </head>
   <body>

@@ -38,14 +38,55 @@
     <script src="/assets/platform.js?v=1"></script>
     <script type="module" src="/assets/site-footer.js?v=4"></script>
     <script type="module" src="prototype/prototype.js?v=59"></script>
+    <link rel="stylesheet" href="/assets/product-info.css?v=1">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://planeroll.app/#publisher",
+      "name": "Flyboys, LLC",
+      "url": "https://flyboys.dev/",
+      "email": "tower@planeroll.app"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://planeroll.app/#website",
+      "url": "https://planeroll.app/",
+      "name": "Planeroll",
+      "publisher": {
+        "@id": "https://planeroll.app/#publisher"
+      },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://planeroll.app/#app",
+      "name": "Planeroll",
+      "url": "https://planeroll.app/",
+      "description": "Planeroll is a planespotting app that helps you identify aircraft, log sightings, and build your personal aircraft collection.",
+      "operatingSystem": "iOS",
+      "applicationCategory": "LifestyleApplication",
+      "image": "https://planeroll.app/assets/previews/square-brand.png",
+      "publisher": {
+        "@id": "https://planeroll.app/#publisher"
+      }
+    }
+  ]
+}
+    </script>
   </head>
   <body>
-    <main class="scroll-story" id="scroll-story" aria-label="Scroll to photograph an aircraft and reveal its Planeroll spot">
+    <a class="skip-details" href="#about-planeroll">Skip to app details</a>
+    <main>
+    <div class="scroll-story" id="scroll-story" aria-label="Scroll to photograph an aircraft and reveal its Planeroll spot">
       <div class="stage" id="stage" data-phase="ready">
         <div class="world" id="world" aria-hidden="true"><canvas id="airfield"></canvas></div>
         <div class="intro-copy" id="intro-copy">
           <h1 class="intro-headline" id="intro-headline">Build your aircraft collection.</h1>
           <p class="intro-tagline">You spot. We identify.</p>
+          <a class="intro-about" href="#about-planeroll">About Planeroll ↓</a>
           <span class="intro-scroll" role="img" aria-label="Scroll down">
             <svg class="scroll-cue" viewBox="0 0 40 110" fill="none" aria-hidden="true">
               <rect x="9.6" y="2" width="20.8" height="30.4" rx="10.4"/>
@@ -54,7 +95,7 @@
             </svg>
           </span>
         </div>
-        <div class="phone" id="phone" aria-label="Phone preview">
+        <div class="phone" id="phone" aria-hidden="true">
           <div class="phone-button button-silent"></div><div class="phone-button button-volume"></div><div class="phone-button button-power"></div>
           <div class="phone-screen">
             <div class="camera-app" id="camera-app" aria-hidden="true">
@@ -141,6 +182,27 @@
         </div>
       </div>
       <p class="sr-only" id="scene-description" role="status">Scroll down to raise the phone, frame the aircraft, capture a photo, and reveal a sample Planeroll collection screen. Scroll up to return to the camera and airfield. All aircraft details shown are demonstration data.</p>
+    </div>
+    <section class="product-info" id="about-planeroll" aria-labelledby="about-heading" tabindex="-1">
+      <h2 id="about-heading">Your aircraft collection starts with a sighting.</h2>
+      <p class="product-introduction">Planeroll is a planespotting app that helps you identify aircraft, log sightings, and build your personal aircraft collection.</p>
+      <div class="product-features">
+        <section aria-labelledby="identify-heading">
+          <h3 id="identify-heading">Identify aircraft</h3>
+          <p>Identify aircraft from a photo or tail number, and explore aircraft types and variants.</p>
+        </section>
+        <section aria-labelledby="sightings-heading">
+          <h3 id="sightings-heading">Log your sightings</h3>
+          <p>Keep a record of the aircraft you spot, with photographs, dates, and locations.</p>
+        </section>
+        <section aria-labelledby="collection-heading">
+          <h3 id="collection-heading">Build your collection</h3>
+          <p>Bring your sightings together in a personal aircraft collection and revisit the details of each planespot.</p>
+        </section>
+      </div>
+      <p class="product-availability">Coming to iPhone in early 2027. Made by <a href="https://flyboys.dev/" target="_blank" rel="noopener noreferrer">Flyboys, LLC</a>.</p>
+      <p>Questions? <a href="mailto:tower@planeroll.app">Contact tower@planeroll.app</a>.</p>
+    </section>
     </main>
     <footer class="site-footer" id="site-footer">
       <a class="site-footer-brand" href="/" aria-label="Planeroll home"><img class="site-footer-logo" src="/assets/planeroll-logo-with-effects.svg" width="1482" height="351" alt="Planeroll" draggable="false"></a>
@@ -158,6 +220,16 @@
         </a>
       </nav>
     </footer>
-    <noscript><p class="no-script">Enable JavaScript to explore Planeroll.</p></noscript>
+    <noscript>
+      <style>
+        .scroll-story { height: auto !important; }
+        .stage { position: relative; height: auto; padding: 48px 24px; }
+        .stage::after, .world, .phone, .intro-scroll { display: none; }
+        .intro-copy { position: static; width: 100%; max-width: 100%; opacity: 1; }
+        .intro-headline, .intro-tagline { opacity: 1; transform: none; }
+        .intro-tagline { color: #fff; }
+        .site-footer { position: relative; }
+      </style>
+    </noscript>
   </body>
 </html>
